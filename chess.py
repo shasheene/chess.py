@@ -9,12 +9,12 @@ import sys
 
 board = [
 					["r","h","b","q","k","b","h","r"],
+					["p","p","p","p","p","p","p","p"],
 					["","","","","","","",""],
 					["","","","","","","",""],
 					["","","","","","","",""],
 					["","","","","","","",""],
-					["","","","","","","",""],
-					["","","","","","","",""],
+					["p","p","p","p","p","p","p","p"],
 					["r","h","b","k","q","b","h","r"]
 				]
 
@@ -32,12 +32,11 @@ def take_input():
 	return move[0:1], move[1:]
 
 def printBoard(board):
-	print board
-	print
-	#for row in board[:]:
-		#for piece in row[:]:
-			#print(piece)
-		#print #new line
+	for row in board[:]:
+		for piece in row[:]:
+			print piece,
+		print #next row
+	print #new line
 
 	
 
