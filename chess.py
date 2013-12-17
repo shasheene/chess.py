@@ -7,43 +7,41 @@ Text-based chess game.
 
 import sys
 
-class Piece():
-	def __init__(self):
+class Piece(object):
+	def __init__(self,col):
 		self.moved = 0
+		self.col = col
 		self.type="_"
-	def moveValid(self,start,end):
-		return 1
+		if (self.col=="white"):
+			self.enemyCol="black"
+			self.forwardDir=-1
+		elif (self.col=="black"):
+			self.enemyCol="white"
+			self.forwardDir=+1
+
+	def getMoveSet(self,pieceLocation):
+		return []
 
 class Pawn(Piece):
 	def __init__(self,col):
-		self.col = col
-		self.moved = 0
+		super(Pawn, self).__init__(col)
 		self.type="p"
-		if (col=="white"):
-			self.forward_dir=1
-		else:
-			self.forward_dir=-1
 
-	def moveValid(self,start,end):
-		#FORWARD
-		if (start[1]==end[1]): #If columns are same (ie Pawn moving forward)
-			if (board[start[0]+1][end[1]].type!="_"): #if piece in front of us
-				print 'ERROR: THERE IS A PIECE BLOCKING'
-				return 0
-			if (end[0]==start[0]+2): #If jumping two spaces:
-				if (self.moved==1):
-					print 'ERROR: CANNOT DO PAWN HOP AFTER FIRST MOVE'
-					return 0
-				if ((board[start[0]+1][end[1]].type!="_") or (board[start[0]+2][end[1]].type!="_")):
-					print 'ERROR: THERE IS A PIECE BLOCKING'
-					return 0
-			if (abs(start[0]-end[0])>2):
-				print 'ERROR: PAWN JUMPING TOO FAR'
-				return 0
-		#		if ((end[1]==start[1]) and board[end[0],end[1]].type==""):
-		self.moved=1
-		return 1
-		
+	def getMoveSet(self,pieceLocation):
+		myMoveSet=[]
+		if (checkLocation(pieceLocation[0]+self.forwardDir,pieceLocation[1])=="_"): #Is space directly forward from us free?
+			myMoveSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]])
+			if ((checkLocation(pieceLocation[0]+self.forwardDir*2,pieceLocation[1])=="_") and self.moved==0): #If in addition space TWO forward from us free, and we haven't moved
+				myMoveSet.append([pieceLocation[0]+self.forwardDir*2,pieceLocation[1]]) #Pawn jump
+		if (checkLocation(pieceLocation[0]+self.forwardDir,pieceLocation[1]-1)==self.enemyCol): #Attack north west
+			myMoveSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]-1])
+		if (checkLocation(pieceLocation[0]+self.forwardDir,pieceLocation[1]+1)==self.enemyCol): #Attack north east
+			myMoveSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]+1])
+			
+		return myMoveSet
+
+def checkLocation(row,column):
+	return board[row][column].type
 
 def convert(pair):
 	""" Converts chess coords to index (eg. 'a4' to [4,0] or 'e3' to [3,5]). Returns in [row,col], Assumes valid input (for now) """
@@ -54,10 +52,10 @@ def convert(pair):
 	return row,col
 
 def take_input():
-	print ' Enter piece to move. Example: e2 e4 '
+	print ' Select piece to move. Example: e2 '
 	r = raw_input()
 	move = r.split()
-	return move[0:1], move[1:]
+	return move[0:1]
 
 def printBoard(board):
 	for row in board[:]:
@@ -70,19 +68,20 @@ def printBoard(board):
 global board
 board = []
 
-piece = Piece() #test only
+piece = Piece("black") #test only
 board.append([piece,piece,piece,piece,piece,piece,piece,piece])
 board.append([]);
 for i in range(0,8):
 	p = Pawn("black")
 	board[1].append(p);
+piece = Piece("") #test only
 for i in range(2,6):
 	board.append([piece,piece,piece,piece,piece,piece,piece,piece])
 board.append([]);
 for i in range(0,8):
 	p = Pawn("white")
 	board[6].append(p);
-piece = Piece() #test only
+piece = Piece("white") #test only
 board.append([piece,piece,piece,piece,piece,piece,piece,piece])
 
 
@@ -102,20 +101,26 @@ printBoard(board)
 
 while 1:
 	print 'White\'s turn. Enter row'
-	legalMove=0
-	while (legalMove==0):
-		start,end = take_input()
-		print start
-		print end
-		start = convert(start[0])
-		print start
-		end = convert(end[0])
-		print end
-		printBoard(board)
-
-		legalMove = board[start[0]][start[1]].moveValid(start,end)
-		if (legalMove==0):
+	legalSelection=0
+	while (legalSelection==0):
+		selected = take_input()
+		print selected
+		legalSelection=1 #No error checking for now
+		if (legalSelection==0):
 			print 'INVALID MOVE. Re-enter'
-	board[end[0]][end[1]] = board[start[0]][start[1]]
-	board[start[0]][start[1]] = piece
+
+	selected = convert(selected[0])
+	printBoard(board)
+	selectedMoveSet=board[selected[0]][selected[1]].getMoveSet(selected)
+	print selectedMoveSet
+	print 'Please enter index of move choice to make:'
+	indexOfChoice = int(raw_input())
+	end = selectedMoveSet[indexOfChoice]
+	
+	print 'Chose:',
+	print end
+
+
+	board[end[0]][end[1]] = board[selected[0]][selected[1]]
+	board[selected[0]][selected[1]] = piece
 	printBoard(board)
