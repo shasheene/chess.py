@@ -105,24 +105,39 @@ class Knight(AdvancedPiece):
 def pieceAt(row,column): #Conveniant notation
 	return board[row][column]
 
+def pieceAtCoords(coords): #Conveniant notation
+	return board[coords[0]][coords[1]]
+
 def isOffEdge(i,j): # Remember internal board is indexed 0 to 7, not 1 to 8
 	if i>=7 or i<0 or j>=7 or j<0:
 		return 1
 	return 0
 
-def convert(pair):
-	""" Converts chess coords to index (eg. 'a4' to [4,0] or 'e3' to [3,5]). Returns in [row,col], Assumes valid input (for now) """
+def a1ToPythonConvert(pair):
+	""" Converts chess coords system to a list with origin top-left.
+
+	Chess has origin bottom-left and counts colums a to h and rows numbered 1 to 8. 
+	Computers index differently, from top-left and count from 0 rather than 1.
+
+	Example: 'a8' returns [0,0]. 'a1' returns [7,0].
+	
+	Note: No error checking yet - assumes user enters valid input currently
+	"""
 	print "Checking pair: " + pair
-	col = ord(pair[0]) - 97 # in ascii lower case a is 97
+	col = ord(pair[0].lower()) - 97 # In ascii, 'a'=97
 	print "Letter is " + str(pair[0]) + " -> " + str(col)
 	row = 8 - int(pair[1]) # Chess counts from 1, not 0. (the row component of coords 'e2' to is 1, not 2.)
 	return row,col
 
+def pythonToa1Convert(pair):
+	col = chr(pair[1]+97) # In ascii, 'a'=97
+	row = str(8-pair[0]) # Chess counts from 1, not 0. (the row component of coords 'e2' to is 1, not 2.)
+	return (col + row)
+
 def take_input():
 	print ' Select piece to move. Example: e2 '
 	r = raw_input()
-	move = r.split()
-	return move[0:1]
+	return r.split()[0:1] #Ignore things after spaces
 
 def printBoard(board):
 	for row in board[:]:
@@ -178,17 +193,23 @@ while 1:
 		selected = take_input()
 		print selected
 
-		selected = convert(selected[0])
+		selected = a1ToPythonConvert(selected[0])
 		printBoard(board)
 		selectedMoveSet=board[selected[0]][selected[1]].getMoveSet(selected)
-		print selectedMoveSet
-		moveSetSize=len(selectedMoveSet)
+
+		print 'Selected: \'' + pieceAtCoords(selected).type + '\':'
+ 		moveSetSize=len(selectedMoveSet)
 		if moveSetSize==0:
-			print 'Error no moves available. Choose another piece'
+			print '...Error no moves available. Choose another piece'
+		else:
+			print 'Possible moves: ',
+			for i in selectedMoveSet:
+				print pythonToa1Convert(i),
+			print
 
 	legalMoveChoice=0
 	while(legalMoveChoice==0):
-		print 'Please enter index of move choice to make:'
+		print 'Choose a move: Example: 0 (to select the first)'
 		indexOfChoice = int(raw_input())
 		end = selectedMoveSet[indexOfChoice]
 		if (indexOfChoice>=0 and indexOfChoice<len(selectedMoveSet)):
