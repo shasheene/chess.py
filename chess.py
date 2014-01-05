@@ -8,26 +8,24 @@ Text-based chess game.
 import sys
 
 class Piece(object):
-	def __init__(self,col):
+	def __init__(self,col,whitePieceUnicodeCodepoint):
 		self.moved = 0
 		self.col = col
 		self.type="_"
-		self.c=""
 		if (self.col=="white"):
 			self.enemyCol="black"
-			self.c="w"#printing only
 			self.forwardDir=-1
+			self.unicodeSymbol=unichr(int(whitePieceUnicodeCodepoint,16)).encode('utf-8')
 		elif (self.col=="black"):
 			self.enemyCol="white"
-			self.c="b"
 			self.forwardDir=+1
-
+			self.unicodeSymbol=unichr(int(whitePieceUnicodeCodepoint,16)+6).encode('utf-8')
 	def getMoveSet(self,pieceLocation):
 		return []
 
 class Pawn(Piece):
 	def __init__(self,col):
-		super(Pawn, self).__init__(col)
+		super(Pawn, self).__init__(col,'2659')
 		self.type="p"
 
 	def getMoveSet(self,pieceLocation):
@@ -45,8 +43,8 @@ class Pawn(Piece):
 
 
 class AdvancedPiece(Piece):
-	def __init__(self,col,listOfUnitMoves,movementStyle):
-		super(AdvancedPiece, self).__init__(col)
+	def __init__(self,col,listOfUnitMoves,movementStyle,whitePieceUnicodeCodepoint):
+		super(AdvancedPiece, self).__init__(col,whitePieceUnicodeCodepoint)
 		self.myVectorSet = listOfUnitMoves
  #movementStyle either "slider" (ie rook,bishop,queen) or "teleporter" (king,knight) with respect to moveVectors
 		self.movementStyle= movementStyle
@@ -74,33 +72,33 @@ class AdvancedPiece(Piece):
 class Rook(AdvancedPiece):
 	def __init__(self,col):
 		self.myVectorSet = [[-1,0],[1,0],[0,-1],[0,1]]
-		super(Rook, self).__init__(col,self.myVectorSet,"slider")
+		super(Rook, self).__init__(col,self.myVectorSet,"slider",'2656')
 		self.type="r"
 
 class Bishop(AdvancedPiece):
 	def __init__(self,col):
 		self.myVectorSet = [[-1,-1],[-1,+1],[+1,-1],[1,1]]
-		super(Bishop, self).__init__(col,self.myVectorSet,"slider")
+		super(Bishop, self).__init__(col,self.myVectorSet,"slider",'2657')
 		self.type="b"
 
 class Queen(AdvancedPiece):
 	def __init__(self,col): #Both rook AND bishop's movesets
 		self.myVectorSet = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,+1],[+1,-1],[1,1]]
-		super(Queen, self).__init__(col,self.myVectorSet,"slider")
+		super(Queen, self).__init__(col,self.myVectorSet,"slider",'2655')
 		self.type="q"
 
 class King(AdvancedPiece):
-	def __init__(self,col): #Both rook AND bishop's movesets
+	def __init__(self,col): #same as queen in vectorset, but parent class makes moveset smaller
 		self.myVectorSet = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,+1],[+1,-1],[1,1]]
-		super(King, self).__init__(col,self.myVectorSet,"teleporter")
+		super(King, self).__init__(col,self.myVectorSet,"teleporter",'2654')
 		self.type="k"
 		#No castling yet
 
 class Knight(AdvancedPiece):
-	def __init__(self,col): #Both rook AND bishop's movesets
+	def __init__(self,col): #similar vector set/moveset relationship as king (see parent class)
 		self.myVectorSet = [[-2,-1],[-2,1],[1,2],[-1,2],[2,-1],[2,1],[-1,-2],[1,-2]]
-		super(Knight, self).__init__(col,self.myVectorSet,"teleporter")
-		self.type="h" #h for 'horse', as king is taken
+		super(Knight, self).__init__(col,self.myVectorSet,"teleporter",'2658')
+		self.type="h" #h for 'horse', as king is taken 'k'
 
 def pieceAt(row,column): #Conveniant notation
 	return board[row][column]
@@ -123,9 +121,9 @@ def a1ToPythonConvert(pair):
 	
 	Note: No error checking yet - assumes user enters valid input currently
 	"""
-	print "Checking pair: " + pair
+	#print "Checking pair: " + pair
 	col = ord(pair[0].lower()) - 97 # In ascii, 'a'=97
-	print "Letter is " + str(pair[0]) + " -> " + str(col)
+	#print "Letter is " + str(pair[0]) + " -> " + str(col)
 	row = 8 - int(pair[1]) # Chess counts from 1, not 0. (the row component of coords 'e2' to is 1, not 2.)
 	return row,col
 
@@ -135,26 +133,27 @@ def pythonToa1Convert(pair):
 	return (col + row)
 
 def take_input():
-	print ' Select piece to move. Example: e2 '
 	r = raw_input()
 	return r.split()[0:1] #Ignore things after spaces
 
 def printBoard(board):
+	rowNumber = 8
 	for row in board[:]:
+		print rowNumber,
 		for piece in row[:]:
 			if piece.type!="_":
-				print piece.type + "(" + piece.c + ") ",
+				print piece.unicodeSymbol,
 			else:
-				print '____ ', # just for prettyness
+				print '_', # just for prettyness
+		rowNumber=rowNumber-1
 		print #next row
-	print #new line
+	print ' a b c d e f g h' #column identifier
 
 #Create board:
 global board
 board = []
 
 #Board creation:
-piece = Piece("black") #test only
 r = Rook("black")
 h = Knight("black")
 b = Bishop("black")
@@ -165,14 +164,13 @@ board.append([]);
 for i in range(0,8):
 	p = Pawn("black")
 	board[1].append(p);
-blankPiece = Piece("") #test only
+blankPiece = Piece("",'0123') #test only
 for i in range(2,6):
 	board.append([blankPiece,blankPiece,blankPiece,blankPiece,blankPiece,blankPiece,blankPiece,blankPiece])
 board.append([]);
 for i in range(0,8):
 	p = Pawn("white")
 	board[6].append(p);
-piece = Piece("white") #test only
 r = Rook("white")
 h = Knight("white")
 b = Bishop("white")
@@ -182,43 +180,53 @@ board.append([r,h,b,k,q,b,h,r])
 
 
 
-print 'WELCOME TO TEXT BASED CHESS'
-printBoard(board)
+#print 'WELCOME TO TEXT BASED CHESS'
 
 while 1:
+
+	printBoard(board)
 	print 'White\'s turn. Select piece'
 	
 	moveSetSize=0
 	while (moveSetSize==0):
+		print ' Select piece to move. Example: e2 '
 		selected = take_input()
-		print selected
 
 		selected = a1ToPythonConvert(selected[0])
-		printBoard(board)
 		selectedMoveSet=board[selected[0]][selected[1]].getMoveSet(selected)
 
-		print 'Selected: \'' + pieceAtCoords(selected).type + '\':'
+		print 'Selected: \'' + pieceAtCoords(selected).type + '\'.',
  		moveSetSize=len(selectedMoveSet)
 		if moveSetSize==0:
-			print '...Error no moves available. Choose another piece'
+			print '\n ...Error no moves available. Choose another piece'
 		else:
 			print 'Possible moves: ',
 			for i in selectedMoveSet:
 				print pythonToa1Convert(i),
 			print
 
+	#Choose end location:
 	legalMoveChoice=0
 	while(legalMoveChoice==0):
-		print 'Choose a move: Example: 0 (to select the first)'
-		indexOfChoice = int(raw_input())
-		end = selectedMoveSet[indexOfChoice]
-		if (indexOfChoice>=0 and indexOfChoice<len(selectedMoveSet)):
-			print 'Chose:',
-			print end
-			legalMoveChoice=1
-		else:
-			print 'Illegal move choice: ' + str(indexOfChoice)
+		print ' Select location to move piece to: '
+		moveTo = take_input()
+		moveTo = a1ToPythonConvert(moveTo[0]) #e4 becomes [4,4]?
 
+	
+		for i in range(0,len(selectedMoveSet)): # Search selectedMoveSet for moveTo[0]:
+			#quick hack to compare list value with tuple value (find better way later):
+			if selectedMoveSet[i][0]==moveTo[0] and selectedMoveSet[i][1]==moveTo[1]:
+				legalMoveChoice=1
+				end = selectedMoveSet[i]
+	
 	board[end[0]][end[1]] = board[selected[0]][selected[1]]
 	board[selected[0]][selected[1]] = blankPiece
-	printBoard(board)
+
+		
+'''		if (indexOfChoice>=0 and indexOfChoice<len(selectedMoveSet)):
+			print 'Chose:',
+			print end
+			
+		else:
+		print 'Illegal move choice: ' + str(indexOfChoice)'''
+
