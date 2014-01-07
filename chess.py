@@ -181,29 +181,32 @@ board.append([r,h,b,k,q,b,h,r])
 
 
 #print 'WELCOME TO TEXT BASED CHESS'
+playerTurn="white"
 
 while 1:
-
 	printBoard(board)
-	print 'White\'s turn. Select piece'
+	print playerTurn + 's turn. Select piece'
 	
-	moveSetSize=0
-	while (moveSetSize==0):
+	validSelection=0
+	while (validSelection==0):
 		print ' Select piece to move. Example: e2 '
 		selected = take_input()
 
 		selected = a1ToPythonConvert(selected[0])
-		selectedMoveSet=board[selected[0]][selected[1]].getMoveSet(selected)
+		
+		selectedMoveSet=pieceAtCoords(selected).getMoveSet(selected)
 
 		print 'Selected: \'' + pieceAtCoords(selected).type + '\'.',
  		moveSetSize=len(selectedMoveSet)
-		if moveSetSize==0:
+		if moveSetSize==0 or pieceAtCoords(selected).col!=playerTurn:
 			print '\n ...Error no moves available. Choose another piece'
 		else:
 			print 'Possible moves: ',
 			for i in selectedMoveSet:
 				print pythonToa1Convert(i),
 			print
+			validSelection=1
+
 
 	#Choose end location:
 	legalMoveChoice=0
@@ -222,11 +225,17 @@ while 1:
 	board[end[0]][end[1]] = board[selected[0]][selected[1]]
 	board[selected[0]][selected[1]] = blankPiece
 
-		
-'''		if (indexOfChoice>=0 and indexOfChoice<len(selectedMoveSet)):
-			print 'Chose:',
-			print end
-			
-		else:
-		print 'Illegal move choice: ' + str(indexOfChoice)'''
+	#Will only allow legal move if isBeingChecked(myself)=false if this move proceeds
 
+	#Algorithm for end of game:
+	#1.) Determine if enemy is being checked.
+	 #For every attack in player.getAttackSet(), if enemyKing.location==attack then return true
+	
+	#2.) Determine if checked enemy can recover
+	 #For every move in moveSet that can remove 'check', if myKing.location==every enemyPlayer.getAttackSet(), then CHECKMATE msg and exit
+	
+	#Next turn
+	if playerTurn=="white":
+		playerTurn="black"
+	else:
+		playerTurn="white"
