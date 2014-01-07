@@ -8,7 +8,7 @@ Chess pieces are represented with the standard [unicode characters](http://en.wi
 
 In the future I will add a graphical user interface (likely using the 'pygame' library)
 
-(The game is currently completely terminal/command-line based. At the moment, the player selects pieces by typing the coordinates (eg. 'e2' followed by 'e4' to play the famous opening "King's Pawn" opening move).)
+(The game is currently completely terminal/command-line based. At the moment, the player selects pieces by typing the coordinates (eg. 'e2' followed by 'e4' to play the famous "King's Pawn" opening move).)
 
 #### Features
 Currently, only the chess piece movement/attack mechanics are complete:
@@ -16,11 +16,13 @@ Currently, only the chess piece movement/attack mechanics are complete:
 - [x] Rook
 - [x] Knight
 - [x] Bishop
-- [] King (no castling yet)
+- [x] King
 - [x] Queen
-- [] Main game logic (turn-based game with check/checkmate detection)
+- [] Advanced piece mechanics (Pawn promotion and King/Rook "castling")
+- [x] Main game logic: Turn-based basic playable game mechanics
+- [] Game ending logic: Check/checkmate detection
 - [] Graphical user interface with move selection through mouse clicks (and highlighting legal moves of selected piece)
-- [] Computer player with AI
+- [] Computer player with AI communicating to seperate server using JSON messages
 
 ## Screenshots
 
