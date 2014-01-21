@@ -22,6 +22,8 @@ class Piece(object):
 			self.unicodeSymbol=unichr(int(whitePieceUnicodeCodepoint,16)+6).encode('utf-8')
 	def getMoveSet(self,pieceLocation):
 		return []
+	def getAttackSet(self,pieceLocation): #Useful for checkmate detection
+		return self.getMoveSet(pieceLocation) #overridden for Pawn
 
 class Pawn(Piece):
 	def __init__(self,col):
@@ -32,16 +34,26 @@ class Pawn(Piece):
 		self.myMoveSet=[]
 		if (pieceAt(pieceLocation[0]+self.forwardDir,pieceLocation[1]).type=="_"): #Is space directly forward from us free?
 			self.myMoveSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]])
-			if ((pieceAt(pieceLocation[0]+self.forwardDir*2,pieceLocation[1]).type=="_") and self.moved==0): #If in addition space TWO forward from us free, and we haven't moved
+			 #If in addition space TWO forward from us free, and we haven't moved
+			if ((pieceAt(pieceLocation[0]+self.forwardDir*2,pieceLocation[1]).type=="_") and self.moved==0):
 				self.myMoveSet.append([pieceLocation[0]+self.forwardDir*2,pieceLocation[1]]) #Pawn jump
-		if (pieceAt(pieceLocation[0]+self.forwardDir,pieceLocation[1]-1).col==self.enemyCol): #Attack north west
-			self.myMoveSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]-1])
-		if (pieceAt(pieceLocation[0]+self.forwardDir,pieceLocation[1]+1).col==self.enemyCol): #Attack north east
-			self.myMoveSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]+1])
 		self.moved=1
+		#self.myMoveSet[0:0] = self.getAttackSet(pieceLocation)
 		return self.myMoveSet
 
+#	def getAttackSet(self,pieceLocation):
+#		return self.getMoveSet(pieceLocation)
 
+
+	def getAttackSet(self,pieceLocation):
+		self.myAttackSet=[]
+		if (pieceAt(pieceLocation[0]+self.forwardDir,pieceLocation[1]-1).col==self.enemyCol): #Attack north west
+			self.myAttackSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]-1])
+		if (pieceAt(pieceLocation[0]+self.forwardDir,pieceLocation[1]+1).col==self.enemyCol): #Attack north east
+			self.myMoveSet.append([pieceLocation[0]+self.forwardDir,pieceLocation[1]+1])
+		return self.myAttackSet
+		
+		
 class AdvancedPiece(Piece):
 	def __init__(self,col,listOfUnitMoves,movementStyle,whitePieceUnicodeCodepoint):
 		super(AdvancedPiece, self).__init__(col,whitePieceUnicodeCodepoint)
@@ -56,11 +68,15 @@ class AdvancedPiece(Piece):
 			#print 'Checking vector',
 			#print vector
 			if self.movementStyle=="slider":
-				while (isOffEdge(self.i,self.j)==0 and pieceAt(self.i,self.j).col!=self.col):
+				hitEnemyThisDir=False #Slide until first enemy
+				while (isOffEdge(self.i,self.j)==0 and pieceAt(self.i,self.j).col!=self.col and hitEnemyThisDir==False):
 					#print 'Adding: ' + str(self.i) + "," + str(self.j)
 					self.myMoveSet.append([self.i,self.j])
+					if (pieceAt(self.i,self.j).col==oppositeCol(self.col)):
+						hitEnemyThisDir=True #stop sliding this dir if hit enemy
 					self.i += vector[0]
 					self.j += vector[1]
+
 			elif self.movementStyle=="teleporter":
 				if (isOffEdge(self.i,self.j)==0 and pieceAt(self.i,self.j).col!=self.col):
 					#print 'Adding: ' + str(self.i) + "," + str(self.j)
@@ -92,8 +108,25 @@ class King(AdvancedPiece):
 		self.myVectorSet = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,+1],[+1,-1],[1,1]]
 		super(King, self).__init__(col,self.myVectorSet,"teleporter",'2654')
 		self.type="k"
-		#No castling yet
 
+"""		def getMoveSet(self,pieceLocation): #teleporter overridden to get castling
+			self.myMoveSet=[]
+			for vector in self.myVectorSet:
+				self.i = pieceLocation[0]+vector[0]
+				self.j = pieceLocation[1]+vector[1]
+				if (isOffEdge(self.i,self.j)==0 and pieceAt(self.i,self.j).col!=self.col):
+					#print 'Adding: ' + str(self.i) + "," + str(self.j)
+					self.myMoveSet.append([self.i,self.j])
+				global board
+				if self.col=="white":
+					home_row = 7
+				else:
+					home_row = 0
+				rookA = pieceAtCoords([home_row,0]) #Potential rook
+				rookB = pieceAtCoords([home_row,0])
+				if (rookA.type="r" and rookA.moved=0):
+					print"""
+						
 class Knight(AdvancedPiece):
 	def __init__(self,col): #similar vector set/moveset relationship as king (see parent class)
 		self.myVectorSet = [[-2,-1],[-2,1],[1,2],[-1,2],[2,-1],[2,1],[-1,-2],[1,-2]]
@@ -183,6 +216,56 @@ board.append([r,h,b,k,q,b,h,r])
 #print 'WELCOME TO TEXT BASED CHESS'
 playerTurn="white"
 
+def findKing(colour): #Temporary, will get all mechanics implemented even inefficently THEN improve algo/design
+	global board
+	row=0
+	for r in board:
+		column=0
+		for piece in r:
+			if piece.type=="k" and piece.col==colour:
+				return ([int(row),int(column)])
+			column=(column+1)%7
+		row=row+1
+
+def getTeamAttackSet(col):
+	teamAttackSet = []
+	row=0
+	for r in board:
+		column=0
+		for piece in r:
+			if piece.col==col: #eg. what's white attack set?
+				pieceLoc = [row,column]
+				pieceAttackSet = piece.getAttackSet(pieceLoc)
+				teamAttackSet.append(pieceAttackSet)
+				
+				print pythonToa1Convert(pieceLoc) + " " + pieceAtCoords(pieceLoc).type + ": ", 
+				for a in pieceAttackSet:
+					print pythonToa1Convert(a),
+				print
+			column=(column+1)%7
+		row=row+1
+	return teamAttackSet
+
+def isBeingChecked(col): #eg. isBeingChecked("black")
+	kingLoc = findKing(col)
+	teamAttackSet = getTeamAttackSet(oppositeCol(col))
+
+	print "King is at :" + str(kingLoc)
+	for pieceAttackSet in teamAttackSet:
+		if kingLoc in pieceAttackSet:
+			return True
+	#otherwise
+	return False
+
+def oppositeCol(col):
+	if col=="white":
+		return "black"
+	if col=="black":
+		return "white"
+	if col=="_":
+		sys.exit() #
+		#return None 
+
 while 1:
 	printBoard(board)
 	print playerTurn + 's turn. Select piece'
@@ -218,12 +301,23 @@ while 1:
 	
 		for i in range(0,len(selectedMoveSet)): # Search selectedMoveSet for moveTo[0]:
 			#quick hack to compare list value with tuple value (find better way later):
-			if selectedMoveSet[i][0]==moveTo[0] and selectedMoveSet[i][1]==moveTo[1]:
+
+			check = isBeingChecked(playerTurn)
+			if selectedMoveSet[i][0]==moveTo[0] and selectedMoveSet[i][1]==moveTo[1] and check==False:
 				legalMoveChoice=1
 				end = selectedMoveSet[i]
+			if check==True:
+				print "**THIS MOVE WILL CAUSE A CHECK**"
 	
+
 	board[end[0]][end[1]] = board[selected[0]][selected[1]]
 	board[selected[0]][selected[1]] = blankPiece
+
+
+	if isBeingChecked(oppositeCol(playerTurn)):
+		print '***********CHECK!!!!!!!!!!!!!!!!!!'
+
+	   
 
 	#Will only allow legal move if isBeingChecked(myself)=false if this move proceeds
 
@@ -232,10 +326,8 @@ while 1:
 	 #For every attack in player.getAttackSet(), if enemyKing.location==attack then return true
 	
 	#2.) Determine if checked enemy can recover
-	 #For every move in moveSet that can remove 'check', if myKing.location==every enemyPlayer.getAttackSet(), then CHECKMATE msg and exit
+	 #For every move in moveSet that can remove 'check', if every myKing.location==any enemyPlayer.getAttackSet(), then CHECKMATE msg and exit
 	
 	#Next turn
-	if playerTurn=="white":
-		playerTurn="black"
-	else:
-		playerTurn="white"
+	playerTurn=oppositeCol(playerTurn)
+	
