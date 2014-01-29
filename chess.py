@@ -108,7 +108,7 @@ class King(AdvancedPiece):
 		self.myVectorSet = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,+1],[+1,-1],[1,1]]
 		super(King, self).__init__(col,self.myVectorSet,"teleporter",'2654')
 		self.type="k"
-
+                #Castling:
 """		def getMoveSet(self,pieceLocation): #teleporter overridden to get castling
 			self.myMoveSet=[]
 			for vector in self.myVectorSet:
@@ -180,7 +180,7 @@ def printBoard(board):
 				print '_', # just for prettyness
 		rowNumber=rowNumber-1
 		print #next row
-	print ' a b c d e f g h' #column identifier
+	print '  a b c d e f g h' #column identifier
 
 #Create board:
 global board
@@ -238,10 +238,10 @@ def getTeamAttackSet(col):
 				pieceAttackSet = piece.getAttackSet(pieceLoc)
 				teamAttackSet.append(pieceAttackSet)
 				
-				print pythonToa1Convert(pieceLoc) + " " + pieceAtCoords(pieceLoc).type + ": ", 
+				'''print pythonToa1Convert(pieceLoc) + " " + pieceAtCoords(pieceLoc).type + ": ", 
 				for a in pieceAttackSet:
 					print pythonToa1Convert(a),
-				print
+				print'''
 			column=(column+1)%7
 		row=row+1
 	return teamAttackSet
@@ -250,7 +250,7 @@ def isBeingChecked(col): #eg. isBeingChecked("black")
 	kingLoc = findKing(col)
 	teamAttackSet = getTeamAttackSet(oppositeCol(col))
 
-	print "King is at :" + str(kingLoc)
+	#print "King is at :" + str(kingLoc)
 	for pieceAttackSet in teamAttackSet:
 		if kingLoc in pieceAttackSet:
 			return True
@@ -313,11 +313,8 @@ while 1:
 	board[end[0]][end[1]] = board[selected[0]][selected[1]]
 	board[selected[0]][selected[1]] = blankPiece
 
-
 	if isBeingChecked(oppositeCol(playerTurn)):
 		print '***********CHECK!!!!!!!!!!!!!!!!!!'
-
-	   
 
 	#Will only allow legal move if isBeingChecked(myself)=false if this move proceeds
 
