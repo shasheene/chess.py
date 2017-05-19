@@ -1,6 +1,10 @@
 #### chess.py
 chess.py is small, text-based chess game
 
+#### History
+
+chess.py was written during freetime between December 2013 and January 2014, but was abandoned near-completion of terminal-based gameplay. In May 2017 (4 years and 4 months later), development resumed.
+
 #### Requirements
 Currently, [python3](http://www.python.org/getit/) is the only dependancy, so the game *should* also run on Windows and MacOS X.
 
@@ -26,4 +30,4 @@ Currently, only the chess piece movement/attack mechanics are complete:
 
 ## Screenshots
 
-![Unicode characters are pretty cool](https://dl.dropboxusercontent.com/u/6634730/github/chess/chesspyTerminalScreenshot.png "chess.py screenshot")
+![Unicode characters are pretty cool](docs/images/chesspyTerminalScreenshot.png "chess.py screenshot")
