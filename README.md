@@ -2,7 +2,7 @@
 chess.py is small, text-based chess game
 
 #### Requirements
-Currently, [python2](http://www.python.org/getit/) is the only dependancy, so the game *should* also run on Windows and MacOS X.
+Currently, [python3](http://www.python.org/getit/) is the only dependancy, so the game *should* also run on Windows and MacOS X.
 
 Chess pieces are represented with the standard [unicode characters](http://en.wikipedia.org/wiki/Chess_symbols_in_Unicode)
 

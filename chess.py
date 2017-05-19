@@ -15,11 +15,11 @@ class Piece(object):
 		if (self.col=="white"):
 			self.enemyCol="black"
 			self.forwardDir=-1
-			self.unicodeSymbol=unichr(int(whitePieceUnicodeCodepoint,16)).encode('utf-8')
+			self.unicodeSymbol=chr(int(whitePieceUnicodeCodepoint, 16)).encode('utf-8')
 		elif (self.col=="black"):
 			self.enemyCol="white"
 			self.forwardDir=+1
-			self.unicodeSymbol=unichr(int(whitePieceUnicodeCodepoint,16)+6).encode('utf-8')
+			self.unicodeSymbol=chr(int(whitePieceUnicodeCodepoint, 16) + 6).encode('utf-8')
 	def getMoveSet(self,pieceLocation):
 		return []
 	def getAttackSet(self,pieceLocation): #Useful for checkmate detection
@@ -166,21 +166,23 @@ def pythonToa1Convert(pair):
 	return (col + row)
 
 def take_input():
-	r = raw_input()
-	return r.split()[0:1] #Ignore things after spaces
+    r = input()
+    # Ignore things after spaces
+    return r.split()[0:1]
 
 def printBoard(board):
 	rowNumber = 8
 	for row in board[:]:
-		print rowNumber,
+		print(rowNumber, end=' ')
 		for piece in row[:]:
 			if piece.type!="_":
-				print piece.unicodeSymbol,
+				print(piece.unicodeSymbol.decode("utf-8", "ignore"), end=' ')
 			else:
-				print '_', # just for prettyness
+				# just for prettyness
+				print('_', end=' ')
 		rowNumber=rowNumber-1
-		print #next row
-	print '  a b c d e f g h' #column identifier
+		print(end='\n')#next row
+	print('  a b c d e f g h') #column identifier
 
 #Create board:
 global board
@@ -268,33 +270,33 @@ def oppositeCol(col):
 
 while 1:
 	printBoard(board)
-	print playerTurn + 's turn. Select piece'
+	print(playerTurn + 's turn. Select piece')
 	
 	validSelection=0
 	while (validSelection==0):
-		print ' Select piece to move. Example: e2 '
+		print(' Select piece to move. Example: e2 ')
 		selected = take_input()
 
 		selected = a1ToPythonConvert(selected[0])
 		
 		selectedMoveSet=pieceAtCoords(selected).getMoveSet(selected)
 
-		print 'Selected: \'' + pieceAtCoords(selected).type + '\'.',
- 		moveSetSize=len(selectedMoveSet)
+		print('Selected: \'' + pieceAtCoords(selected).type + '\'.',)
+		moveSetSize=len(selectedMoveSet)
 		if moveSetSize==0 or pieceAtCoords(selected).col!=playerTurn:
-			print '\n ...Error no moves available. Choose another piece'
+			print('\n ...Error no moves available. Choose another piece')
 		else:
-			print 'Possible moves: ',
+			print('Possible moves: ',)
 			for i in selectedMoveSet:
-				print pythonToa1Convert(i),
-			print
+				print(pythonToa1Convert(i),)
+			print()
 			validSelection=1
 
 
 	#Choose end location:
 	legalMoveChoice=0
 	while(legalMoveChoice==0):
-		print ' Select location to move piece to: '
+		print(' Select location to move piece to: ')
 		moveTo = take_input()
 		moveTo = a1ToPythonConvert(moveTo[0]) #e4 becomes [4,4]?
 
@@ -307,14 +309,14 @@ while 1:
 				legalMoveChoice=1
 				end = selectedMoveSet[i]
 			if check==True:
-				print "**THIS MOVE WILL CAUSE A CHECK**"
+				print("**THIS MOVE WILL CAUSE A CHECK**")
 	
 
 	board[end[0]][end[1]] = board[selected[0]][selected[1]]
 	board[selected[0]][selected[1]] = blankPiece
 
 	if isBeingChecked(oppositeCol(playerTurn)):
-		print '***********CHECK!!!!!!!!!!!!!!!!!!'
+		print('***********CHECK!!!!!!!!!!!!!!!!!!')
 
 	#Will only allow legal move if isBeingChecked(myself)=false if this move proceeds
 
