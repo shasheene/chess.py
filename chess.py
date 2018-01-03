@@ -10,14 +10,14 @@ import sys
 
 class Piece(object):
     def __init__(self, col, whitePieceUnicodeCodepoint):
-        self.moved = 0
+        self.hasNeverMoved = True
         self.col = col
         self.type = "_"
-        if (self.col == "white"):
+        if self.col == "white":
             self.enemyCol = "black"
             self.forwardDir = -1
             self.unicodeSymbol = chr(int(whitePieceUnicodeCodepoint, 16)).encode('utf-8')
-        elif (self.col == "black"):
+        elif self.col == "black":
             self.enemyCol = "white"
             self.forwardDir = +1
             self.unicodeSymbol = chr(int(whitePieceUnicodeCodepoint, 16) + 6).encode('utf-8')
@@ -25,40 +25,42 @@ class Piece(object):
     def getMoveSet(self, pieceLocation):
         return []
 
-    def getAttackSet(self, pieceLocation):  # Useful for checkmate detection
-        return self.getMoveSet(pieceLocation)  # overridden for Pawn
+    # Useful method for checkmate detection
+    def getAttackSet(self, pieceLocation):
+        return self.getMoveSet(pieceLocation)
 
 
 class Pawn(Piece):
     def __init__(self, col):
         super(Pawn, self).__init__(col, '2659')
+        self.attackSet = []
+        self.moveSet = []
         self.type = "p"
 
     def getMoveSet(self, pieceLocation):
-        self.myMoveSet = []
+        self.moveSet = []
+        # Is space directly forward from us free?
         if (pieceAt(pieceLocation[0] + self.forwardDir,
-                    pieceLocation[1]).type == "_"):  # Is space directly forward from us free?
-            self.myMoveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1]])
-            # If in addition space TWO forward from us free, and we haven't moved
-            if ((pieceAt(pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]).type == "_") and self.moved == 0):
-                self.myMoveSet.append([pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]])  # Pawn jump
-        self.moved = 1
-        # self.myMoveSet[0:0] = self.getAttackSet(pieceLocation)
-        return self.myMoveSet
-
-    #	def getAttackSet(self,pieceLocation):
-    #		return self.getMoveSet(pieceLocation)
-
+                    pieceLocation[1]).type == "_"):
+            self.moveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1]])
+            # If we haven't moved, is the space TWO forward from us free?
+            if self.hasNeverMoved and (pieceAt(pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]).type == "_"):
+                # Append pawn jump move
+                self.moveSet.append([pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]])
+        self.hasNeverMoved = False
+        return self.moveSet
 
     def getAttackSet(self, pieceLocation):
-        self.myAttackSet = []
+        self.attackSet = []
         if (pieceAt(pieceLocation[0] + self.forwardDir,
-                    pieceLocation[1] - 1).col == self.enemyCol):  # Attack north west
-            self.myAttackSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] - 1])
+                    # Attack north west (from white's perspective)
+                    pieceLocation[1] - 1).col == self.enemyCol):
+            self.attackSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] - 1])
         if (pieceAt(pieceLocation[0] + self.forwardDir,
-                    pieceLocation[1] + 1).col == self.enemyCol):  # Attack north east
-            self.myMoveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] + 1])
-        return self.myAttackSet
+                    # Attack "north east"
+                    pieceLocation[1] + 1).col == self.enemyCol):
+            self.moveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] + 1])
+        return self.attackSet
 
 
 class AdvancedPiece(Piece):
@@ -69,7 +71,7 @@ class AdvancedPiece(Piece):
         self.movementStyle = movementStyle
 
     def getMoveSet(self, pieceLocation):
-        self.myMoveSet = []
+        self.moveSet = []
         for vector in self.myVectorSet:
             self.i = pieceLocation[0] + vector[0]
             self.j = pieceLocation[1] + vector[1]
@@ -80,7 +82,7 @@ class AdvancedPiece(Piece):
                 while (isOffEdge(self.i, self.j) == 0 and pieceAt(self.i,
                                                                   self.j).col != self.col and hitEnemyThisDir == False):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
-                    self.myMoveSet.append([self.i, self.j])
+                    self.moveSet.append([self.i, self.j])
                     if (pieceAt(self.i, self.j).col == oppositeCol(self.col)):
                         hitEnemyThisDir = True  # stop sliding this dir if hit enemy
                     self.i += vector[0]
@@ -89,10 +91,10 @@ class AdvancedPiece(Piece):
             elif self.movementStyle == "teleporter":
                 if (isOffEdge(self.i, self.j) == 0 and pieceAt(self.i, self.j).col != self.col):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
-                    self.myMoveSet.append([self.i, self.j])
+                    self.moveSet.append([self.i, self.j])
 
-        self.moved = 1
-        return self.myMoveSet
+        self.hasNeverMoved = True
+        return self.moveSet
 
 
 class Rook(AdvancedPiece):
@@ -125,13 +127,13 @@ class King(AdvancedPiece):
 
 
 """		def getMoveSet(self,pieceLocation): #teleporter overridden to get castling
-			self.myMoveSet=[]
+			self.moveSet=[]
 			for vector in self.myVectorSet:
 				self.i = pieceLocation[0]+vector[0]
 				self.j = pieceLocation[1]+vector[1]
 				if (isOffEdge(self.i,self.j)==0 and pieceAt(self.i,self.j).col!=self.col):
 					#print 'Adding: ' + str(self.i) + "," + str(self.j)
-					self.myMoveSet.append([self.i,self.j])
+					self.moveSet.append([self.i,self.j])
 				global board
 				if self.col=="white":
 					home_row = 7
@@ -306,15 +308,16 @@ while 1:
 
         selected = a1ToPythonConvert(selected[0])
 
-        selectedMoveSet = pieceAtCoords(selected).getMoveSet(selected)
+        selectedPiecePossibleMoves = pieceAtCoords(selected).getMoveSet(selected)
+        selectedPiecePossibleMoves += pieceAtCoords(selected).getAttackSet(selected)
 
         print('Selected: \'' + pieceAtCoords(selected).type + '\'.', )
-        moveSetSize = len(selectedMoveSet)
+        moveSetSize = len(selectedPiecePossibleMoves)
         if moveSetSize == 0 or pieceAtCoords(selected).col != playerTurn:
             print('\n ...Error no moves available. Choose another piece')
         else:
             print('Possible moves: ', )
-            for i in selectedMoveSet:
+            for i in selectedPiecePossibleMoves:
                 print(pythonToa1Convert(i), )
             print()
             validSelection = 1
@@ -326,13 +329,13 @@ while 1:
         moveTo = take_input()
         moveTo = a1ToPythonConvert(moveTo[0])  # e4 becomes [4,4]?
 
-        for i in range(0, len(selectedMoveSet)):  # Search selectedMoveSet for moveTo[0]:
+        for i in range(0, len(selectedPiecePossibleMoves)):  # Search selectedMoveSet for moveTo[0]:
             # quick hack to compare list value with tuple value (find better way later):
 
             check = isBeingChecked(playerTurn)
-            if selectedMoveSet[i][0] == moveTo[0] and selectedMoveSet[i][1] == moveTo[1] and check == False:
+            if selectedPiecePossibleMoves[i][0] == moveTo[0] and selectedPiecePossibleMoves[i][1] == moveTo[1] and check == False:
                 legalMoveChoice = 1
-                end = selectedMoveSet[i]
+                end = selectedPiecePossibleMoves[i]
             if check == True:
                 print("**THIS MOVE WILL CAUSE A CHECK**")
 
