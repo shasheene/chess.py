@@ -318,6 +318,20 @@ def oppositeCol(col):
         sys.exit()  #
         # return None
 
+def requestUserMove(message):
+    print(message)
+    rawInput = take_input()
+    if len(rawInput) == 0:
+        print("No input given.")
+        return []
+
+    try:
+        # e4 becomes [3,3]
+        move = a1ToPythonConvert(rawInput[0])
+    except (ValueError, Exception):
+        print("Error occurred processing input. Please try again.")
+        return []
+    return move
 
 while 1:
     printBoard(board)
@@ -326,10 +340,10 @@ while 1:
     validSelection = False
     selected = 0
     while not validSelection:
-        print(' Select piece to move. Example: e2 ')
-        selected = take_input()
-
-        selected = a1ToPythonConvert(selected[0])
+        selected = requestUserMove(' Select piece to move. Example: e2 ')
+        print()
+        if not selected:
+            continue
 
         selectedPiecePossibleMoves = pieceAtCoords(selected).getMoveSet(selected)
         selectedPiecePossibleMoves += pieceAtCoords(selected).getAttackSet(selected)
@@ -350,9 +364,10 @@ while 1:
     # Choose end location:
     legalMoveChoice = False
     while not legalMoveChoice:
-        print(' Select location to move piece to: ')
-        moveTo = take_input()
-        moveTo = a1ToPythonConvert(moveTo[0])  # e4 becomes [4,4]?
+        moveTo = requestUserMove(' Select location to move piece to: ')
+        print()
+        if not moveTo:
+            continue
 
         for i in range(0, len(selectedPiecePossibleMoves)):  # Search selectedMoveSet for moveTo[0]:
             # quick hack to compare list value with tuple value (find better way later):
