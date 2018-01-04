@@ -27,7 +27,7 @@ class Piece(object):
 
     # Useful method for checkmate detection
     def getAttackSet(self, pieceLocation):
-        return self.getMoveSet(pieceLocation)
+        return []
 
 
 class Pawn(Piece):
@@ -70,8 +70,8 @@ class AdvancedPiece(Piece):
         # movementStyle either "slider" (ie rook,bishop,queen) or "teleporter" (king,knight) with respect to moveVectors
         self.movementStyle = movementStyle
 
-    def getMoveSet(self, pieceLocation):
-        self.moveSet = []
+    def getAttackSet(self, pieceLocation):
+        self.attackSet = []
         for vector in self.myVectorSet:
             self.i = pieceLocation[0] + vector[0]
             self.j = pieceLocation[1] + vector[1]
@@ -82,7 +82,7 @@ class AdvancedPiece(Piece):
                 while (isOffEdge(self.i, self.j) == 0 and pieceAt(self.i,
                                                                   self.j).col != self.col and hitEnemyThisDir == False):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
-                    self.moveSet.append([self.i, self.j])
+                    self.attackSet.append([self.i, self.j])
                     if (pieceAt(self.i, self.j).col == oppositeCol(self.col)):
                         hitEnemyThisDir = True  # stop sliding this dir if hit enemy
                     self.i += vector[0]
@@ -91,10 +91,10 @@ class AdvancedPiece(Piece):
             elif self.movementStyle == "teleporter":
                 if (isOffEdge(self.i, self.j) == 0 and pieceAt(self.i, self.j).col != self.col):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
-                    self.moveSet.append([self.i, self.j])
+                    self.attackSet.append([self.i, self.j])
 
         self.hasNeverMoved = True
-        return self.moveSet
+        return self.attackSet
 
 
 class Rook(AdvancedPiece):
