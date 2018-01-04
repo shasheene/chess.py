@@ -83,7 +83,7 @@ class AdvancedPiece(Piece):
             # print vector
             if self.movementStyle == "slider":
                 hitEnemyThisDir = False  # Slide until first enemy
-                while (isOffEdge(self.i, self.j) == 0 and pieceAt(self.i,
+                while (not isOffEdge(self.i, self.j) and pieceAt(self.i,
                                                                   self.j).col != self.col and hitEnemyThisDir == False):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
                     self.attackSet.append([self.i, self.j])
@@ -93,7 +93,7 @@ class AdvancedPiece(Piece):
                     self.j += vector[1]
 
             elif self.movementStyle == "teleporter":
-                if (isOffEdge(self.i, self.j) == 0 and pieceAt(self.i, self.j).col != self.col):
+                if (not isOffEdge(self.i, self.j) and pieceAt(self.i, self.j).col != self.col):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
                     self.attackSet.append([self.i, self.j])
 
@@ -184,7 +184,7 @@ def pieceAtCoords(coords):  # Conveniant notation
 def isOffEdge(i, j):
     if i > 7 or i < 0 or j > 7 or j < 0:
         return 1
-    return 0
+    return True
 
 
 def a1ToPythonConvert(pair):
@@ -323,9 +323,9 @@ while 1:
     printBoard(board)
     print(playerTurn + 's turn. Select piece')
 
-    validSelection = 0
+    validSelection = False
     selected = 0
-    while (validSelection == 0):
+    while not validSelection:
         print(' Select piece to move. Example: e2 ')
         selected = take_input()
 
@@ -345,11 +345,11 @@ while 1:
             for i in selectedPiecePossibleMoves:
                 print(pythonToa1Convert(i), )
             print()
-            validSelection = 1
+            validSelection = True
 
-            # Choose end location:
-    legalMoveChoice = 0
-    while (legalMoveChoice == 0):
+    # Choose end location:
+    legalMoveChoice = False
+    while not legalMoveChoice:
         print(' Select location to move piece to: ')
         moveTo = take_input()
         moveTo = a1ToPythonConvert(moveTo[0])  # e4 becomes [4,4]?
@@ -358,11 +358,11 @@ while 1:
             # quick hack to compare list value with tuple value (find better way later):
 
             check = isBeingChecked(playerTurn)
-            if selectedPiecePossibleMoves[i][0] == moveTo[0] and selectedPiecePossibleMoves[i][1] == moveTo[1] and check == False:
-                legalMoveChoice = 1
+            if not check and selectedPiecePossibleMoves[i][0] == moveTo[0] and selectedPiecePossibleMoves[i][1] == moveTo[1]:
+                legalMoveChoice = True
                 end = selectedPiecePossibleMoves[i]
-            if check == True:
-                print("**THIS MOVE WILL CAUSE A CHECK**")
+            if check:
+                print("Illegal move. This move would cause a check!")
 
     if pieceAtCoords(selected).type == "k":
         castlingSet = pieceAtCoords(selected).getCastlingSet(selected)
