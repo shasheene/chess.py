@@ -15,11 +15,15 @@ class Piece(object):
         self.type = "_"
         if self.col == "white":
             self.enemyCol = "black"
+            self.homeRank = 7
+            self.enemyHomeRank = 0
             self.forwardDir = -1
             self.unicodeSymbol = chr(int(whitePieceUnicodeCodepoint, 16)).encode('utf-8')
         elif self.col == "black":
             self.enemyCol = "white"
             self.forwardDir = +1
+            self.homeRank = 0
+            self.enemyHomeRank = 7
             self.unicodeSymbol = chr(int(whitePieceUnicodeCodepoint, 16) + 6).encode('utf-8')
 
     def getMoveSet(self, pieceLocation):
@@ -123,26 +127,42 @@ class King(AdvancedPiece):
         self.myVectorSet = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
         super(King, self).__init__(col, self.myVectorSet, "teleporter", '2654')
         self.type = "k"
-        # Castling:
+        if col == "white":
+            self.leftwardsColIndexIncrement = -1
+            self.rightwardsColIndexIncrement = 1
+        else:
+            self.leftwardsColIndexIncrement = 1
+            self.rightwardsColIndexIncrement = -1
 
+    def _getCastlingPositions(self):
+        self.castlingPositions = [[self.homeRank, "1"], [self.homeRank, "6"]]
 
-"""		def getMoveSet(self,pieceLocation): #teleporter overridden to get castling
-			self.moveSet=[]
-			for vector in self.myVectorSet:
-				self.i = pieceLocation[0]+vector[0]
-				self.j = pieceLocation[1]+vector[1]
-				if (isOffEdge(self.i,self.j)==0 and pieceAt(self.i,self.j).col!=self.col):
-					#print 'Adding: ' + str(self.i) + "," + str(self.j)
-					self.moveSet.append([self.i,self.j])
-				global board
-				if self.col=="white":
-					home_row = 7
-				else:
-					home_row = 0
-				rookA = pieceAtCoords([home_row,0]) #Potential rook
-				rookB = pieceAtCoords([home_row,0])
-				if (rookA.type="r" and rookA.moved=0):
-					print"""
+    # Override teleporter to get castling
+    def getAttackSet(self,pieceLocation):
+        self.attackSet=super(King,self).getAttackSet(pieceLocation)
+        self.attackSet += self.getCastlingSet(pieceLocation)
+        return self.attackSet
+
+    def getCastlingSet(self, pieceLocation):
+        castlingSet = []
+        if self.hasNeverMoved:
+            # Ensure the positions to the left of king are empty
+            if pieceAtCoords([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 1]).type == "_" \
+                    and pieceAtCoords([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2]).type == "_":
+                # And the left rook has never moved
+                leftRook = pieceAtCoords([self.homeRank,pieceLocation[1] + self.leftwardsColIndexIncrement*3])
+                if leftRook.type=="r" and leftRook.hasNeverMoved:
+                    castlingSet.append([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2])
+            # Ensure the positions to the right of king are empty
+            if pieceAtCoords([self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 1]).type == "_" \
+                    and pieceAtCoords([self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 2]).type == "_" \
+                    and pieceAtCoords([self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 3]).type == "_":
+                # And the right rook has never moved
+                rightRook = pieceAtCoords([self.homeRank,pieceLocation[1] + self.rightwardsColIndexIncrement*4])
+                if rightRook.type=="r" and rightRook.hasNeverMoved:
+                    castlingSet.append([self.homeRank,  pieceLocation[1] + self.rightwardsColIndexIncrement * 3])
+        return castlingSet
+
 
 
 class Knight(AdvancedPiece):
@@ -304,6 +324,7 @@ while 1:
     print(playerTurn + 's turn. Select piece')
 
     validSelection = 0
+    selected = 0
     while (validSelection == 0):
         print(' Select piece to move. Example: e2 ')
         selected = take_input()
@@ -340,6 +361,11 @@ while 1:
                 end = selectedPiecePossibleMoves[i]
             if check == True:
                 print("**THIS MOVE WILL CAUSE A CHECK**")
+
+    if pieceAtCoords(selected).type == "k":
+        castlingSet = pieceAtCoords(selected).getCastlingSet(selected)
+        if len(castlingSet) > 0:
+            print("**NOTE: Castling move detected, but not yet implemented -- simply moving king only**")
 
     board[end[0]][end[1]] = board[selected[0]][selected[1]]
     board[selected[0]][selected[1]] = blankPiece
