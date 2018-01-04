@@ -196,6 +196,7 @@ def take_input():
 
 
 def printBoard(board):
+    print('  a b c d e f g h')
     rowNumber = 8
     for row in board[:]:
         print(rowNumber, end=' ')
@@ -207,7 +208,7 @@ def printBoard(board):
                 print('_', end=' ')
         rowNumber = rowNumber - 1
         print(end='\n')  # next row
-    print('  a b c d e f g h')  # column identifier
+    print('  a b c d e f g h')
 
 
 # Create board:
