@@ -336,7 +336,9 @@ while 1:
 
         print('Selected: \'' + pieceAtCoords(selected).type + '\'.', )
         moveSetSize = len(selectedPiecePossibleMoves)
-        if moveSetSize == 0 or pieceAtCoords(selected).col != playerTurn:
+        if pieceAtCoords(selected).col != playerTurn:
+            print('\n ...Error selected opponents\' piece. Choose another piece')
+        elif moveSetSize == 0:
             print('\n ...Error no moves available. Choose another piece')
         else:
             print('Possible moves: ', )
