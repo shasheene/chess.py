@@ -274,34 +274,34 @@ def findKing(board, colour):  # Temporary, will get all mechanics implemented ev
         for piece in r:
             if piece.type == "k" and piece.col == colour:
                 return ([int(row), int(column)])
-            column = (column + 1) % 7
+            column = (column + 1)
         row = row + 1
 
 
-def getTeamAttackSet(board, col):
-    teamAttackSet = []
+def getTeamMoveSet(board, col, option):
+    teamMoveSet = []
     row = 0
     for r in board:
         column = 0
         for piece in r:
             if piece.col == col:  # eg. what's white attack set?
                 pieceLoc = [row, column]
-                pieceAttackSet = piece.getAttackSet(board, pieceLoc)
-                teamAttackSet.append(pieceAttackSet)
-            column = (column + 1) % 7
+                if option == "moveset":
+                    teamMoveSet += pieceAt(board, pieceLoc[0],  pieceLoc[1]).getMoveSet(board, pieceLoc)
+                else:
+                    teamMoveSet += pieceAt(board, pieceLoc[0], pieceLoc[1]).getAttackSet(board, pieceLoc)
+            column = (column + 1)
         row = row + 1
-    return teamAttackSet
+    return teamMoveSet
 
 
 def isBeingChecked(board, col):  # eg. isBeingChecked("black")
     kingLoc = findKing(board, col)
-    teamAttackSet = getTeamAttackSet(board, oppositeCol(col))
+    teamAttackSet = getTeamMoveSet(board, oppositeCol(col), "attackset")
 
     # print "King is at :" + str(kingLoc)
-    for pieceAttackSet in teamAttackSet:
-        if kingLoc in pieceAttackSet:
-            return True
-            # otherwise
+    if kingLoc in teamAttackSet:
+        return True
     return False
 
 
@@ -351,17 +351,33 @@ def conductMove(existingBoard, startCoords, endCoords, playerCol):
     return newBoard
 
 
-def filterSelfCheckingMoves(board, seletedPieceCoords, listOfMoves, playerTurn):
+def filterSelfCheckingMoves(board, selectedPieceCoords, listOfMoves, playerTurn):
     """ Returns new list without the moves that causes own player to become checked"""
     pieceLegalMoveSet = []
     for candidateMove in listOfMoves:
-        newBoard = conductMove(board, seletedPieceCoords, candidateMove, playerTurn)
+        newBoard = conductMove(board, selectedPieceCoords, candidateMove, playerTurn)
         if not newBoard:
             continue
         # if it doesn't cause self to become checked, move is valid!
         if not isBeingChecked(newBoard, playerTurn):
             pieceLegalMoveSet.append(candidateMove)
     return pieceLegalMoveSet
+
+
+def canPlayerLeaveCheckState(board, playerTurn):
+    legalMoveSet = []
+    row = 0
+    for r in board:
+        column = 0
+        for piece in r:
+            if piece.col == playerTurn:
+                pieceCoords = [row, column]
+                pieceTotalMoveSet = selectedPiece(board, pieceCoords).getMoveSet(board, pieceCoords)
+                pieceTotalMoveSet += selectedPiece(board, pieceCoords).getAttackSet(board, pieceCoords)
+                legalMoveSet += filterSelfCheckingMoves(gameBoard, pieceCoords, pieceTotalMoveSet, playerTurn)
+            column = (column + 1)
+        row = row + 1
+    return len(legalMoveSet) != 0
 
 while 1:
     printBoard(gameBoard)
@@ -408,19 +424,15 @@ while 1:
                 continue
 
     gameBoard = conductMove(gameBoard, coords, moveTo, playerTurn)
-
+    if not gameBoard:
+        print("Illegal move not caught by game logic")
 
     if isBeingChecked(gameBoard, oppositeCol(playerTurn)):
-        print('***********CHECK!!!!!!!!!!!!!!!!!!')
+        if canPlayerLeaveCheckState(gameBoard, oppositeCol(playerTurn)):
+            print('CHECK\n')
+        else:
+            printBoard(gameBoard)
+            print('CHECKMATE. ' + playerTurn + ' wins!\n')
+            exit(0)
 
-        # Will only allow legal move if isBeingChecked(myself)=false if this move proceeds
-
-        # Algorithm for end of game:
-        # 1.) Determine if enemy is being checked.
-        # For every attack in player.getAttackSet(), if enemyKing.location==attack then return true
-
-        # 2.) Determine if checked enemy can recover
-        # For every move in moveSet that can remove 'check', if every myKing.location==any enemyPlayer.getAttackSet(), then CHECKMATE msg and exit
-
-        # Next turn
     playerTurn = oppositeCol(playerTurn)
