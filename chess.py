@@ -7,6 +7,8 @@ Text-based chess game.
 
 import sys
 
+from copy import deepcopy
+
 
 class Piece(object):
     def __init__(self, col, whitePieceUnicodeCodepoint):
@@ -26,11 +28,11 @@ class Piece(object):
             self.enemyHomeRank = 7
             self.unicodeSymbol = chr(int(whitePieceUnicodeCodepoint, 16) + 6).encode('utf-8')
 
-    def getMoveSet(self, pieceLocation):
+    def getMoveSet(self, board, pieceLocation):
         return []
 
     # Useful method for checkmate detection
-    def getAttackSet(self, pieceLocation):
+    def getAttackSet(self, board, pieceLocation):
         return []
 
 
@@ -41,26 +43,26 @@ class Pawn(Piece):
         self.moveSet = []
         self.type = "p"
 
-    def getMoveSet(self, pieceLocation):
+    def getMoveSet(self, board, pieceLocation):
         self.moveSet = []
         # Is space directly forward from us free?
-        if (pieceAt(pieceLocation[0] + self.forwardDir,
+        if (pieceAt(board, pieceLocation[0] + self.forwardDir,
                     pieceLocation[1]).type == "_"):
             self.moveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1]])
             # If we haven't moved, is the space TWO forward from us free?
-            if self.hasNeverMoved and (pieceAt(pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]).type == "_"):
+            if self.hasNeverMoved and (pieceAt(board, pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]).type == "_"):
                 # Append pawn jump move
                 self.moveSet.append([pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]])
         self.hasNeverMoved = False
         return self.moveSet
 
-    def getAttackSet(self, pieceLocation):
+    def getAttackSet(self, board, pieceLocation):
         self.attackSet = []
-        if (pieceAt(pieceLocation[0] + self.forwardDir,
+        if (pieceAt(board, pieceLocation[0] + self.forwardDir,
                     # Attack north west (from white's perspective)
                     pieceLocation[1] - 1).col == self.enemyCol):
             self.attackSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] - 1])
-        if (pieceAt(pieceLocation[0] + self.forwardDir,
+        if (pieceAt(board, pieceLocation[0] + self.forwardDir,
                     # Attack "north east"
                     pieceLocation[1] + 1).col == self.enemyCol):
             self.moveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] + 1])
@@ -74,7 +76,7 @@ class AdvancedPiece(Piece):
         # movementStyle either "slider" (ie rook,bishop,queen) or "teleporter" (king,knight) with respect to moveVectors
         self.movementStyle = movementStyle
 
-    def getAttackSet(self, pieceLocation):
+    def getAttackSet(self, board, pieceLocation):
         self.attackSet = []
         for vector in self.myVectorSet:
             self.i = pieceLocation[0] + vector[0]
@@ -83,17 +85,17 @@ class AdvancedPiece(Piece):
             # print vector
             if self.movementStyle == "slider":
                 hitEnemyThisDir = False  # Slide until first enemy
-                while (not isOffEdge(self.i, self.j) and pieceAt(self.i,
+                while (not isOffEdge(self.i, self.j) and pieceAt(board, self.i,
                                                                   self.j).col != self.col and hitEnemyThisDir == False):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
                     self.attackSet.append([self.i, self.j])
-                    if (pieceAt(self.i, self.j).col == oppositeCol(self.col)):
+                    if (pieceAt(board, self.i, self.j).col == oppositeCol(self.col)):
                         hitEnemyThisDir = True  # stop sliding this dir if hit enemy
                     self.i += vector[0]
                     self.j += vector[1]
 
             elif self.movementStyle == "teleporter":
-                if (not isOffEdge(self.i, self.j) and pieceAt(self.i, self.j).col != self.col):
+                if (not isOffEdge(self.i, self.j) and pieceAt(board, self.i, self.j).col != self.col):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
                     self.attackSet.append([self.i, self.j])
 
@@ -138,27 +140,27 @@ class King(AdvancedPiece):
         self.castlingPositions = [[self.homeRank, "1"], [self.homeRank, "6"]]
 
     # Override teleporter to get castling
-    def getAttackSet(self,pieceLocation):
-        self.attackSet=super(King,self).getAttackSet(pieceLocation)
-        self.attackSet += self.getCastlingSet(pieceLocation)
+    def getAttackSet(self, board, pieceLocation):
+        self.attackSet=super(King,self).getAttackSet(board, pieceLocation)
+        self.attackSet += self.getCastlingSet(board, pieceLocation)
         return self.attackSet
 
-    def getCastlingSet(self, pieceLocation):
+    def getCastlingSet(self, board, pieceLocation):
         castlingSet = []
         if self.hasNeverMoved:
             # Ensure the positions to the left of king are empty
-            if pieceAtCoords([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 1]).type == "_" \
-                    and pieceAtCoords([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2]).type == "_":
+            if selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 1]).type == "_" \
+                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2]).type == "_":
                 # And the left rook has never moved
-                leftRook = pieceAtCoords([self.homeRank,pieceLocation[1] + self.leftwardsColIndexIncrement*3])
+                leftRook = selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 3])
                 if leftRook.type=="r" and leftRook.hasNeverMoved:
                     castlingSet.append([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2])
             # Ensure the positions to the right of king are empty
-            if pieceAtCoords([self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 1]).type == "_" \
-                    and pieceAtCoords([self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 2]).type == "_" \
-                    and pieceAtCoords([self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 3]).type == "_":
+            if selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 1]).type == "_" \
+                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 2]).type == "_" \
+                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 3]).type == "_":
                 # And the right rook has never moved
-                rightRook = pieceAtCoords([self.homeRank,pieceLocation[1] + self.rightwardsColIndexIncrement*4])
+                rightRook = selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 4])
                 if rightRook.type=="r" and rightRook.hasNeverMoved:
                     castlingSet.append([self.homeRank,  pieceLocation[1] + self.rightwardsColIndexIncrement * 3])
         return castlingSet
@@ -172,11 +174,11 @@ class Knight(AdvancedPiece):
         self.type = "h"  # h for 'horse', as king is taken 'k'
 
 
-def pieceAt(row, column):  # Conveniant notation
+def pieceAt(board, row, column):  # Conveniant notation
     return board[row][column]
 
 
-def pieceAtCoords(coords):  # Conveniant notation
+def selectedPiece(board, coords):  # Conveniant notation
     return board[coords[0]][coords[1]]
 
 
@@ -212,6 +214,7 @@ def pythonToa1Convert(pair):
 
 def take_input():
     r = input()
+    print()
     # Ignore things after spaces
     return r.split()[0:1]
 
@@ -233,8 +236,7 @@ def printBoard(board):
 
 
 # Create board:
-global board
-board = []
+gameBoard = []
 
 # Board creation:
 r = Rook("black")
@@ -242,31 +244,30 @@ h = Knight("black")
 b = Bishop("black")
 q = Queen("black")
 k = King("black")
-board.append([r, h, b, q, k, b, h, r])
-board.append([]);
+gameBoard.append([r, h, b, q, k, b, h, r])
+gameBoard.append([]);
 for i in range(0, 8):
     p = Pawn("black")
-    board[1].append(p);
+    gameBoard[1].append(p);
 blankPiece = Piece("", '0123')  # test only
 for i in range(2, 6):
-    board.append([blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece])
-board.append([]);
+    gameBoard.append([blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece])
+gameBoard.append([]);
 for i in range(0, 8):
     p = Pawn("white")
-    board[6].append(p);
+    gameBoard[6].append(p);
 r = Rook("white")
 h = Knight("white")
 b = Bishop("white")
 q = Queen("white")
 k = King("white")
-board.append([r, h, b, k, q, b, h, r])
+gameBoard.append([r, h, b, k, q, b, h, r])
 
 # print 'WELCOME TO TEXT BASED CHESS'
 playerTurn = "white"
 
 
-def findKing(colour):  # Temporary, will get all mechanics implemented even inefficently THEN improve algo/design
-    global board
+def findKing(board, colour):  # Temporary, will get all mechanics implemented even inefficently THEN improve algo/design
     row = 0
     for r in board:
         column = 0
@@ -277,7 +278,7 @@ def findKing(colour):  # Temporary, will get all mechanics implemented even inef
         row = row + 1
 
 
-def getTeamAttackSet(col):
+def getTeamAttackSet(board, col):
     teamAttackSet = []
     row = 0
     for r in board:
@@ -285,21 +286,16 @@ def getTeamAttackSet(col):
         for piece in r:
             if piece.col == col:  # eg. what's white attack set?
                 pieceLoc = [row, column]
-                pieceAttackSet = piece.getAttackSet(pieceLoc)
+                pieceAttackSet = piece.getAttackSet(board, pieceLoc)
                 teamAttackSet.append(pieceAttackSet)
-
-                '''print pythonToa1Convert(pieceLoc) + " " + pieceAtCoords(pieceLoc).type + ": ", 
-                for a in pieceAttackSet:
-                    print pythonToa1Convert(a),
-                print'''
             column = (column + 1) % 7
         row = row + 1
     return teamAttackSet
 
 
-def isBeingChecked(col):  # eg. isBeingChecked("black")
-    kingLoc = findKing(col)
-    teamAttackSet = getTeamAttackSet(oppositeCol(col))
+def isBeingChecked(board, col):  # eg. isBeingChecked("black")
+    kingLoc = findKing(board, col)
+    teamAttackSet = getTeamAttackSet(board, oppositeCol(col))
 
     # print "King is at :" + str(kingLoc)
     for pieceAttackSet in teamAttackSet:
@@ -322,72 +318,97 @@ def requestUserMove(message):
     print(message)
     rawInput = take_input()
     if len(rawInput) == 0:
-        print("No input given.")
-        return []
+        print("No input given.\n")
+        return False
 
     try:
         # e4 becomes [3,3]
         move = a1ToPythonConvert(rawInput[0])
     except (ValueError, Exception):
-        print("Error occurred processing input. Please try again.")
-        return []
+        print("Error occurred processing input. Please try again.\n")
+        return False
     return move
 
-while 1:
-    printBoard(board)
-    print(playerTurn + 's turn. Select piece')
+def conductMove(existingBoard, startCoords, endCoords, playerCol):
+    """ Uses the supplied move on the existing board and returns a new board if the move is valid.
+    
+    If the move causes current player to be checked, False is returned. Does NOT modify existingBoard.
+    
+    Note: Does minimal verification of validity of move   
+    """
 
-    validSelection = False
-    selected = 0
-    while not validSelection:
-        selected = requestUserMove(' Select piece to move. Example: e2 ')
-        print()
-        if not selected:
-            continue
-
-        selectedPiecePossibleMoves = pieceAtCoords(selected).getMoveSet(selected)
-        selectedPiecePossibleMoves += pieceAtCoords(selected).getAttackSet(selected)
-
-        print('Selected: \'' + pieceAtCoords(selected).type + '\'.', )
-        moveSetSize = len(selectedPiecePossibleMoves)
-        if pieceAtCoords(selected).col != playerTurn:
-            print('\n ...Error selected opponents\' piece. Choose another piece')
-        elif moveSetSize == 0:
-            print('\n ...Error no moves available. Choose another piece')
-        else:
-            print('Possible moves: ', )
-            for i in selectedPiecePossibleMoves:
-                print(pythonToa1Convert(i), )
-            print()
-            validSelection = True
-
-    # Choose end location:
-    legalMoveChoice = False
-    while not legalMoveChoice:
-        moveTo = requestUserMove(' Select location to move piece to: ')
-        print()
-        if not moveTo:
-            continue
-
-        for i in range(0, len(selectedPiecePossibleMoves)):  # Search selectedMoveSet for moveTo[0]:
-            # quick hack to compare list value with tuple value (find better way later):
-
-            check = isBeingChecked(playerTurn)
-            if not check and selectedPiecePossibleMoves[i][0] == moveTo[0] and selectedPiecePossibleMoves[i][1] == moveTo[1]:
-                legalMoveChoice = True
-                end = selectedPiecePossibleMoves[i]
-            if check:
-                print("Illegal move. This move would cause a check!")
-
-    if pieceAtCoords(selected).type == "k":
-        castlingSet = pieceAtCoords(selected).getCastlingSet(selected)
+    # Copy old 2D board array
+    newBoard = deepcopy(existingBoard)
+    if selectedPiece(newBoard, startCoords).col != playerCol:
+        return False
+    if selectedPiece(newBoard, startCoords).type == "k":
+        castlingSet = selectedPiece(newBoard, startCoords).getCastlingSet(newBoard, startCoords)
         if len(castlingSet) > 0:
             print("**NOTE: Castling move detected, but not yet implemented -- simply moving king only**")
 
-    board[end[0]][end[1]] = board[selected[0]][selected[1]]
-    board[selected[0]][selected[1]] = blankPiece
+    newBoard[endCoords[0]][endCoords[1]] = newBoard[startCoords[0]][startCoords[1]]
+    newBoard[startCoords[0]][startCoords[1]] = blankPiece
+    return newBoard
 
-    if isBeingChecked(oppositeCol(playerTurn)):
+
+def filterSelfCheckingMoves(board, seletedPieceCoords, listOfMoves, playerTurn):
+    """ Returns new list without the moves that causes own player to become checked"""
+    pieceLegalMoveSet = []
+    for candidateMove in listOfMoves:
+        newBoard = conductMove(board, seletedPieceCoords, candidateMove, playerTurn)
+        if not newBoard:
+            continue
+        # if it doesn't cause self to become checked, move is valid!
+        if not isBeingChecked(newBoard, playerTurn):
+            pieceLegalMoveSet.append(candidateMove)
+    return pieceLegalMoveSet
+
+while 1:
+    printBoard(gameBoard)
+    print(playerTurn + 's turn. Select piece')
+
+    validSelection = False
+    coords = False
+    while not validSelection:
+        coords = requestUserMove(' Select piece to move. Example: e2 \n')
+        if not coords:
+            continue
+        if selectedPiece(gameBoard, coords).type == "_":
+            print('...Error invalid piece. Choose another piece\n')
+            continue
+        if selectedPiece(gameBoard, coords).col != playerTurn:
+            print('...Error selected opponents\' piece. Choose another piece\n')
+            continue
+
+        pieceTotalMoveSet = selectedPiece(gameBoard, coords).getMoveSet(gameBoard, coords)
+        pieceTotalMoveSet += selectedPiece(gameBoard, coords).getAttackSet(gameBoard, coords)
+        pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, coords, pieceTotalMoveSet, playerTurn)
+        if len(pieceLegalMoveSet) == 0:
+            print('...Error no legal moves available. Choose another piece\n')
+            continue
+        validSelection = True
+
+        print('Selected: \'' + selectedPiece(gameBoard, coords).type + '\'.', )
+        print('Possible moves: ', )
+        for i in pieceLegalMoveSet:
+            print(pythonToa1Convert(i), )
+        print()
+
+        # Choose end location:
+        legalMoveChoice = False
+        while not legalMoveChoice:
+            moveTo = requestUserMove(' Select location to move piece to: ')
+            for move in pieceLegalMoveSet:
+                if move[0] == moveTo[0] and move[1] == moveTo[1]:
+                    legalMoveChoice = True
+            if not legalMoveChoice:
+                print('Invalid move')
+                continue
+
+    gameBoard = conductMove(gameBoard, coords, moveTo, playerTurn)
+
+
+    if isBeingChecked(gameBoard, oppositeCol(playerTurn)):
         print('***********CHECK!!!!!!!!!!!!!!!!!!')
 
         # Will only allow legal move if isBeingChecked(myself)=false if this move proceeds
