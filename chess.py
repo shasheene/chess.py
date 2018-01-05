@@ -398,6 +398,8 @@ while 1:
         legalMoveChoice = False
         while not legalMoveChoice:
             moveTo = requestUserMove(' Select location to move piece to: ')
+            if not moveTo:
+                continue
             for move in pieceLegalMoveSet:
                 if move[0] == moveTo[0] and move[1] == moveTo[1]:
                     legalMoveChoice = True
