@@ -183,8 +183,8 @@ def pieceAtCoords(coords):  # Conveniant notation
 # Recall, internal board (unlike raw user input) is indexed 0 to 7, not 1 to 8.
 def isOffEdge(i, j):
     if i > 7 or i < 0 or j > 7 or j < 0:
-        return 1
-    return True
+        return True
+    return False
 
 
 def a1ToPythonConvert(pair):
