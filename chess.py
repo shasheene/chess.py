@@ -42,6 +42,8 @@ class Pawn(Piece):
         self.attackSet = []
         self.moveSet = []
         self.type = "p"
+        # Pawn's relative column offset to get north east and north west (from white's perspective)
+        self.columnAttackOffset = [-1, 1]
 
     def getMoveSet(self, board, pieceLocation):
         self.moveSet = []
@@ -58,14 +60,12 @@ class Pawn(Piece):
 
     def getAttackSet(self, board, pieceLocation):
         self.attackSet = []
-        if (pieceAt(board, pieceLocation[0] + self.forwardDir,
-                    # Attack north west (from white's perspective)
-                    pieceLocation[1] - 1).col == self.enemyCol):
-            self.attackSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] - 1])
-        if (pieceAt(board, pieceLocation[0] + self.forwardDir,
-                    # Attack "north east"
-                    pieceLocation[1] + 1).col == self.enemyCol):
-            self.moveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1] + 1])
+
+        for colOffset in self.columnAttackOffset:
+            self.i = pieceLocation[0] + self.forwardDir
+            self.j = pieceLocation[1] + colOffset
+            if not isOffEdge(self.i, self.j) and (pieceAt(board, self.i, self.j).col == self.enemyCol):
+                self.attackSet.append([self.i, self.j])
         return self.attackSet
 
 
