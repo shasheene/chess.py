@@ -9,7 +9,6 @@ import sys
 
 from copy import deepcopy
 
-
 class Piece(object):
     def __init__(self, col, whitePieceUnicodeCodepoint):
         self.hasNeverMoved = True
@@ -235,36 +234,34 @@ def printBoard(board):
     print('  a b c d e f g h')
 
 
-# Create board:
-gameBoard = []
+def create(blankPiece):
+    # Create board:
+    gameBoard = []
 
-# Board creation:
-r = Rook("black")
-h = Knight("black")
-b = Bishop("black")
-q = Queen("black")
-k = King("black")
-gameBoard.append([r, h, b, q, k, b, h, r])
-gameBoard.append([]);
-for i in range(0, 8):
-    p = Pawn("black")
-    gameBoard[1].append(p);
-blankPiece = Piece("", '0123')  # test only
-for i in range(2, 6):
-    gameBoard.append([blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece])
-gameBoard.append([]);
-for i in range(0, 8):
-    p = Pawn("white")
-    gameBoard[6].append(p);
-r = Rook("white")
-h = Knight("white")
-b = Bishop("white")
-q = Queen("white")
-k = King("white")
-gameBoard.append([r, h, b, k, q, b, h, r])
-
-# print 'WELCOME TO TEXT BASED CHESS'
-playerTurn = "white"
+    # Board creation:
+    r = Rook("black")
+    h = Knight("black")
+    b = Bishop("black")
+    q = Queen("black")
+    k = King("black")
+    gameBoard.append([r, h, b, q, k, b, h, r])
+    gameBoard.append([]);
+    for i in range(0, 8):
+        p = Pawn("black")
+        gameBoard[1].append(p);
+    for i in range(2, 6):
+        gameBoard.append([blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece])
+    gameBoard.append([]);
+    for i in range(0, 8):
+        p = Pawn("white")
+        gameBoard[6].append(p);
+    r = Rook("white")
+    h = Knight("white")
+    b = Bishop("white")
+    q = Queen("white")
+    k = King("white")
+    gameBoard.append([r, h, b, k, q, b, h, r])
+    return gameBoard
 
 
 def findKing(board, colour):  # Temporary, will get all mechanics implemented even inefficently THEN improve algo/design
@@ -329,7 +326,8 @@ def requestUserMove(message):
         return False
     return move
 
-def conductMove(existingBoard, startCoords, endCoords, playerCol):
+
+def conductMove(existingBoard, startCoords, endCoords, playerCol, blankPiece):
     """ Uses the supplied move on the existing board and returns a new board if the move is valid.
     
     If the move causes current player to be checked, False is returned. Does NOT modify existingBoard.
@@ -351,11 +349,11 @@ def conductMove(existingBoard, startCoords, endCoords, playerCol):
     return newBoard
 
 
-def filterSelfCheckingMoves(board, selectedPieceCoords, listOfMoves, playerTurn):
+def filterSelfCheckingMoves(board, selectedPieceCoords, listOfMoves, playerTurn, blankPiece):
     """ Returns new list without the moves that causes own player to become checked"""
     pieceLegalMoveSet = []
     for candidateMove in listOfMoves:
-        newBoard = conductMove(board, selectedPieceCoords, candidateMove, playerTurn)
+        newBoard = conductMove(board, selectedPieceCoords, candidateMove, playerTurn, blankPiece)
         if not newBoard:
             continue
         # if it doesn't cause self to become checked, move is valid!
@@ -374,65 +372,78 @@ def canPlayerLeaveCheckState(board, playerTurn):
                 pieceCoords = [row, column]
                 pieceTotalMoveSet = selectedPiece(board, pieceCoords).getMoveSet(board, pieceCoords)
                 pieceTotalMoveSet += selectedPiece(board, pieceCoords).getAttackSet(board, pieceCoords)
-                legalMoveSet += filterSelfCheckingMoves(gameBoard, pieceCoords, pieceTotalMoveSet, playerTurn)
+                legalMoveSet += filterSelfCheckingMoves(board, pieceCoords, pieceTotalMoveSet, playerTurn)
             column = (column + 1)
         row = row + 1
     return len(legalMoveSet) != 0
 
-while 1:
-    printBoard(gameBoard)
-    print(playerTurn + 's turn. Select piece')
 
-    validSelection = False
-    coords = False
-    while not validSelection:
-        coords = requestUserMove(' Select piece to move. Example: e2 \n')
-        if not coords:
-            continue
-        if selectedPiece(gameBoard, coords).type == "_":
-            print('...Error invalid piece. Choose another piece\n')
-            continue
-        if selectedPiece(gameBoard, coords).col != playerTurn:
-            print('...Error selected opponents\' piece. Choose another piece\n')
-            continue
+def main():
+    playerTurn = "white"
 
-        pieceTotalMoveSet = selectedPiece(gameBoard, coords).getMoveSet(gameBoard, coords)
-        pieceTotalMoveSet += selectedPiece(gameBoard, coords).getAttackSet(gameBoard, coords)
-        pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, coords, pieceTotalMoveSet, playerTurn)
-        if len(pieceLegalMoveSet) == 0:
-            print('...Error no legal moves available. Choose another piece\n')
-            continue
-        validSelection = True
+    blankPiece = Piece("", '0123')
+    gameBoard = create(blankPiece)
 
-        print('Selected: \'' + selectedPiece(gameBoard, coords).type + '\'.', )
-        print('Possible moves: ', )
-        for i in pieceLegalMoveSet:
-            print(pythonToa1Convert(i), )
-        print()
+    while 1:
+        printBoard(gameBoard)
+        print(playerTurn + 's turn. Select piece')
 
-        # Choose end location:
-        legalMoveChoice = False
-        while not legalMoveChoice:
-            moveTo = requestUserMove(' Select location to move piece to: ')
-            if not moveTo:
+        validSelection = False
+        coords = False
+        while not validSelection:
+            coords = requestUserMove(' Select piece to move. Example: e2 \n')
+            if not coords:
                 continue
-            for move in pieceLegalMoveSet:
-                if move[0] == moveTo[0] and move[1] == moveTo[1]:
-                    legalMoveChoice = True
-            if not legalMoveChoice:
-                print('Invalid move')
+            if selectedPiece(gameBoard, coords).type == "_":
+                print('...Error invalid piece. Choose another piece\n')
+                continue
+            if selectedPiece(gameBoard, coords).col != playerTurn:
+                print('...Error selected opponents\' piece. Choose another piece\n')
                 continue
 
-    gameBoard = conductMove(gameBoard, coords, moveTo, playerTurn)
-    if not gameBoard:
-        print("Illegal move not caught by game logic")
+            pieceTotalMoveSet = selectedPiece(gameBoard, coords).getMoveSet(gameBoard, coords)
+            pieceTotalMoveSet += selectedPiece(gameBoard, coords).getAttackSet(gameBoard, coords)
+            pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, coords, pieceTotalMoveSet, playerTurn, blankPiece)
+            if len(pieceLegalMoveSet) == 0:
+                print('...Error no legal moves available. Choose another piece\n')
+                continue
+            validSelection = True
 
-    if isBeingChecked(gameBoard, oppositeCol(playerTurn)):
-        if canPlayerLeaveCheckState(gameBoard, oppositeCol(playerTurn)):
-            print('CHECK\n')
-        else:
-            printBoard(gameBoard)
-            print('CHECKMATE. ' + playerTurn + ' wins!\n')
-            exit(0)
+            print('Selected: \'' + selectedPiece(gameBoard, coords).type + '\'.', )
+            print('Possible moves: ', )
+            for i in pieceLegalMoveSet:
+                print(pythonToa1Convert(i), )
+            print()
 
-    playerTurn = oppositeCol(playerTurn)
+            # Choose end location:
+            legalMoveChoice = False
+            while not legalMoveChoice:
+                moveTo = requestUserMove(' Select location to move piece to: ')
+                if not moveTo:
+                    continue
+                for move in pieceLegalMoveSet:
+                    if move[0] == moveTo[0] and move[1] == moveTo[1]:
+                        legalMoveChoice = True
+                if not legalMoveChoice:
+                    print('Invalid move')
+                    continue
+
+        gameBoard = conductMove(gameBoard, coords, moveTo, playerTurn, blankPiece)
+        if not gameBoard:
+            print("Illegal move not caught by game logic")
+
+        if isBeingChecked(gameBoard, oppositeCol(playerTurn)):
+            if canPlayerLeaveCheckState(gameBoard, oppositeCol(playerTurn)):
+                print('CHECK\n')
+            else:
+                printBoard(gameBoard)
+                print('CHECKMATE. ' + playerTurn + ' wins!\n')
+                exit(0)
+
+        playerTurn = oppositeCol(playerTurn)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(1)
