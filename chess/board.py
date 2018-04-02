@@ -2,7 +2,7 @@ from builtins import ValueError, range, len, int
 from copy import deepcopy
 
 from chess.utils import selectedPiece, oppositeCol, pieceAt
-from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn
+from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn, Piece
 
 def canPlayerLeaveCheckState(board, playerTurn):
     legalMoveSet = []
@@ -69,7 +69,7 @@ def getTeamMoveSet(board, col, option):
             if piece.col == col:  # eg. what's white attack set?
                 pieceLoc = [row, column]
                 if option == "moveset":
-                    teamMoveSet += pieceAt(board, pieceLoc[0],  pieceLoc[1]).getMoveSet(board, pieceLoc)
+                    teamMoveSet += pieceAt(board, pieceLoc[0], pieceLoc[1]).getMoveSet(board, pieceLoc)
                 else:
                     teamMoveSet += pieceAt(board, pieceLoc[0], pieceLoc[1]).getAttackSet(board, pieceLoc)
             column = (column + 1)
@@ -85,6 +85,7 @@ def isBeingChecked(board, col):  # eg. isBeingChecked("black")
     if kingLoc in teamAttackSet:
         return True
     return False
+
 
 def conductMove(existingBoard, startCoords, endCoords, playerCol, blankPiece):
     """ Uses the supplied move on the existing board and returns a new board if the move is valid.
@@ -108,31 +109,15 @@ def conductMove(existingBoard, startCoords, endCoords, playerCol, blankPiece):
     return newBoard
 
 
-def create(blankPiece):
-    # Create board:
-    gameBoard = []
+def create(blank_piece):
+    b = []
 
-    # Board creation:
-    r = Rook("black")
-    h = Knight("black")
-    b = Bishop("black")
-    q = Queen("black")
-    k = King("black")
-    gameBoard.append([r, h, b, q, k, b, h, r])
-    gameBoard.append([]);
-    for i in range(0, 8):
-        p = Pawn("black")
-        gameBoard[1].append(p);
+    b.append([Rook("black"), Knight("black"), Bishop("black"), Queen("black"), King("black"), Bishop("black"), Knight("black"), Rook("black")])
+    b.append([Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black")])
+
     for i in range(2, 6):
-        gameBoard.append([blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece, blankPiece])
-    gameBoard.append([]);
-    for i in range(0, 8):
-        p = Pawn("white")
-        gameBoard[6].append(p);
-    r = Rook("white")
-    h = Knight("white")
-    b = Bishop("white")
-    q = Queen("white")
-    k = King("white")
-    gameBoard.append([r, h, b, k, q, b, h, r])
-    return gameBoard
+        b.append([blank_piece, blank_piece, blank_piece, blank_piece, blank_piece, blank_piece, blank_piece, blank_piece])
+
+    b.append([Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white")])
+    b.append([Rook("white"), Knight("white"), Bishop("white"), Queen("white"), King("white"), Bishop("white"), Knight("white"), Rook("white")])
+    return b
