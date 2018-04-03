@@ -80,7 +80,7 @@ def main():
 
             pieceTotalMoveSet = selectedPiece(gameBoard, coords).getMoveSet(gameBoard, coords)
             pieceTotalMoveSet += selectedPiece(gameBoard, coords).getAttackSet(gameBoard, coords)
-            pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, coords, pieceTotalMoveSet, playerTurn)
+            pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, pieceTotalMoveSet, playerTurn)
             if len(pieceLegalMoveSet) == 0:
                 print('...Error no legal moves available. Choose another piece\n')
                 continue
@@ -89,23 +89,23 @@ def main():
             print('Selected: \'' + selectedPiece(gameBoard, coords).type + '\'.', )
             print('Possible moves: ', )
             for i in pieceLegalMoveSet:
-                print(pythonToa1Convert(i), )
+                print(pythonToa1Convert(i.endCoords), )
             print()
 
             # Choose end location:
-            legalMoveChoice = False
-            while not legalMoveChoice:
-                moveTo = requestUserMove(' Select location to move piece to: ')
-                if not moveTo:
+            chosenMove = False
+            while not chosenMove:
+                userEndCoords = requestUserMove(' Select location to move piece to: ')
+                if not userEndCoords:
                     continue
                 for move in pieceLegalMoveSet:
-                    if move[0] == moveTo[0] and move[1] == moveTo[1]:
-                        legalMoveChoice = True
-                if not legalMoveChoice:
+                    if move.endCoords[0] == userEndCoords[0] and move.endCoords[1] == userEndCoords[1]:
+                        chosenMove = move
+                if not chosenMove:
                     print('Invalid move')
                     continue
 
-        gameBoard = conductMove(gameBoard, coords, moveTo, playerTurn)
+        gameBoard = conductMove(gameBoard, chosenMove, playerTurn)
         if not gameBoard:
             print("Illegal move not caught by game logic")
 

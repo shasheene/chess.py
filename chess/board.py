@@ -21,11 +21,11 @@ def canPlayerLeaveCheckState(board, playerTurn):
     return len(legalMoveSet) != 0
 
 
-def filterSelfCheckingMoves(board, selectedPieceCoords, listOfMoves, playerTurn):
+def filterSelfCheckingMoves(board, listOfMoves, playerTurn):
     """ Returns new list without the moves that causes own player to become checked"""
     pieceLegalMoveSet = []
     for candidateMove in listOfMoves:
-        newBoard = conductMove(board, selectedPieceCoords, candidateMove, playerTurn)
+        newBoard = conductMove(board, candidateMove, playerTurn)
         if not newBoard:
             continue
         # if it doesn't cause self to become checked, move is valid!
@@ -88,7 +88,7 @@ def isBeingChecked(board, col):  # eg. isBeingChecked("black")
     return False
 
 
-def conductMove(existingBoard, startCoords, endCoords, playerCol):
+def conductMove(existingBoard, candidateMove, playerCol):
     """ Uses the supplied move on the existing board and returns a new board if the move is valid.
 
     If the move causes current player to be checked, False is returned. Does NOT modify existingBoard.
@@ -98,6 +98,10 @@ def conductMove(existingBoard, startCoords, endCoords, playerCol):
 
     # Copy old 2D board array
     newBoard = deepcopy(existingBoard)
+
+    startCoords = candidateMove.startCoords
+    endCoords = candidateMove.endCoords
+
     if selectedPiece(newBoard, startCoords).col != playerCol:
         return False
     if selectedPiece(newBoard, startCoords).type == "k":

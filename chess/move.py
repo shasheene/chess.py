@@ -12,7 +12,8 @@ class Move(object):
         self.startCoords = startCoords
         self.endCoords = endCoords
 
-    def __init__(self, startCoords, endCoords, promoteTo):
+    @classmethod
+    def en_passant(self, startCoords, endCoords, promoteTo):
         self.moveType = MoveType.EN_PASSANT
         self.startCoords = startCoords
         self.endCoords = endCoords

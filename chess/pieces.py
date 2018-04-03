@@ -1,3 +1,4 @@
+from chess.move import Move, MoveType
 from chess.utils import pieceAt, selectedPiece, isOffEdge, oppositeCol
 
 
@@ -46,11 +47,11 @@ class Pawn(Piece):
         # Is space directly forward from us free?
         if (pieceAt(board, pieceLocation[0] + self.forwardDir,
                     pieceLocation[1]).isBlankPiece):
-            self.moveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1]])
+            self.moveSet.append(Move(MoveType.NORMAL, pieceLocation, [pieceLocation[0] + self.forwardDir, pieceLocation[1]]))
             # If we haven't moved, is the space TWO forward from us free?
             if self.hasNeverMoved and (pieceAt(board, pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]).isBlankPiece):
                 # Append pawn jump move
-                self.moveSet.append([pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]])
+                self.moveSet.append(Move(MoveType.NORMAL, pieceLocation, [pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]]))
         self.hasNeverMoved = False
         return self.moveSet
 
@@ -61,7 +62,7 @@ class Pawn(Piece):
             self.i = pieceLocation[0] + self.forwardDir
             self.j = pieceLocation[1] + colOffset
             if not isOffEdge(self.i, self.j) and (pieceAt(board, self.i, self.j).col == self.enemyCol):
-                self.attackSet.append([self.i, self.j])
+                self.attackSet.append(Move(MoveType.NORMAL, pieceLocation, [self.i, self.j]))
         return self.attackSet
 
 
@@ -84,7 +85,7 @@ class AdvancedPiece(Piece):
                 while (not isOffEdge(self.i, self.j) and pieceAt(board, self.i,
                                                                   self.j).col != self.col and hitEnemyThisDir == False):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
-                    self.attackSet.append([self.i, self.j])
+                    self.attackSet.append(Move(MoveType.NORMAL, pieceLocation, [self.i, self.j]))
                     if (pieceAt(board, self.i, self.j).col == oppositeCol(self.col)):
                         hitEnemyThisDir = True  # stop sliding this dir if hit enemy
                     self.i += vector[0]
@@ -93,7 +94,7 @@ class AdvancedPiece(Piece):
             elif self.movementStyle == "teleporter":
                 if (not isOffEdge(self.i, self.j) and pieceAt(board, self.i, self.j).col != self.col):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
-                    self.attackSet.append([self.i, self.j])
+                    self.attackSet.append(Move(MoveType.NORMAL, pieceLocation, [self.i, self.j]))
 
         self.hasNeverMoved = True
         return self.attackSet
@@ -146,7 +147,7 @@ class King(AdvancedPiece):
                 # And the left rook has never moved
                 leftRook = selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 3])
                 if leftRook.type=="r" and leftRook.hasNeverMoved:
-                    castlingSet.append([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2])
+                    castlingSet.append(Move(MoveType.CASTLING, pieceLocation, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2]))
             # Ensure the positions to the right of king are empty
             if selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 1]).isBlankPiece \
                     and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 2]).isBlankPiece \
@@ -154,7 +155,7 @@ class King(AdvancedPiece):
                 # And the right rook has never moved
                 rightRook = selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 4])
                 if rightRook.type=="r" and rightRook.hasNeverMoved:
-                    castlingSet.append([self.homeRank,  pieceLocation[1] + self.rightwardsColIndexIncrement * 3])
+                    castlingSet.append(Move(MoveType.CASTLING, pieceLocation, [self.homeRank,  pieceLocation[1] + self.rightwardsColIndexIncrement * 3]))
         return castlingSet
 
 
