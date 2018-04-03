@@ -83,8 +83,9 @@ def isBeingChecked(board, col):  # eg. isBeingChecked("black")
     teamAttackSet = getTeamMoveSet(board, oppositeCol(col), "attackset")
 
     # print "King is at :" + str(kingLoc)
-    if kingLoc in teamAttackSet:
-        return True
+    for move in teamAttackSet:
+        if move.endCoords[0] == kingLoc[0] and move.endCoords[1] == kingLoc[1]:
+            return True
     return False
 
 
