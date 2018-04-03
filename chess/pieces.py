@@ -96,7 +96,6 @@ class AdvancedPiece(Piece):
                     # print 'Adding: ' + str(self.i) + "," + str(self.j)
                     self.attackSet.append(Move(MoveType.NORMAL, pieceLocation, [self.i, self.j]))
 
-        self.hasNeverMoved = True
         return self.attackSet
 
 
