@@ -2,10 +2,11 @@ from chess.utils import pieceAt, selectedPiece, isOffEdge, oppositeCol
 
 
 class Piece(object):
-    def __init__(self, col, whitePieceUnicodeCodepoint):
+    def __init__(self, col, whitePieceUnicodeCodepoint, type):
         self.hasNeverMoved = True
         self.col = col
-        self.type = "_"
+        self.isBlankPiece = False
+        self.type = type
         if self.col == "white":
             self.enemyCol = "black"
             self.homeRank = 7
@@ -27,12 +28,16 @@ class Piece(object):
         return []
 
 
+class BlankPiece(Piece):
+    def __init__(self):
+        super(BlankPiece, self).__init__("", '0123', "_")
+        self.isBlankPiece = True
+
 class Pawn(Piece):
     def __init__(self, col):
-        super(Pawn, self).__init__(col, '2659')
+        super(Pawn, self).__init__(col, '2659', "p")
         self.attackSet = []
         self.moveSet = []
-        self.type = "p"
         # Pawn's relative column offset to get north east and north west (from white's perspective)
         self.columnAttackOffset = [-1, 1]
 
@@ -40,10 +45,10 @@ class Pawn(Piece):
         self.moveSet = []
         # Is space directly forward from us free?
         if (pieceAt(board, pieceLocation[0] + self.forwardDir,
-                    pieceLocation[1]).type == "_"):
+                    pieceLocation[1]).isBlankPiece):
             self.moveSet.append([pieceLocation[0] + self.forwardDir, pieceLocation[1]])
             # If we haven't moved, is the space TWO forward from us free?
-            if self.hasNeverMoved and (pieceAt(board, pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]).type == "_"):
+            if self.hasNeverMoved and (pieceAt(board, pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]).isBlankPiece):
                 # Append pawn jump move
                 self.moveSet.append([pieceLocation[0] + self.forwardDir * 2, pieceLocation[1]])
         self.hasNeverMoved = False
@@ -61,8 +66,8 @@ class Pawn(Piece):
 
 
 class AdvancedPiece(Piece):
-    def __init__(self, col, listOfUnitMoves, movementStyle, whitePieceUnicodeCodepoint):
-        super(AdvancedPiece, self).__init__(col, whitePieceUnicodeCodepoint)
+    def __init__(self, col, listOfUnitMoves, movementStyle, whitePieceUnicodeCodepoint, type):
+        super(AdvancedPiece, self).__init__(col, whitePieceUnicodeCodepoint, type)
         self.myVectorSet = listOfUnitMoves
         # movementStyle either "slider" (ie rook,bishop,queen) or "teleporter" (king,knight) with respect to moveVectors
         self.movementStyle = movementStyle
@@ -97,29 +102,25 @@ class AdvancedPiece(Piece):
 class Rook(AdvancedPiece):
     def __init__(self, col):
         self.myVectorSet = [[-1, 0], [1, 0], [0, -1], [0, 1]]
-        super(Rook, self).__init__(col, self.myVectorSet, "slider", '2656')
-        self.type = "r"
+        super(Rook, self).__init__(col, self.myVectorSet, "slider", '2656', "r")
 
 
 class Bishop(AdvancedPiece):
     def __init__(self, col):
         self.myVectorSet = [[-1, -1], [-1, +1], [+1, -1], [1, 1]]
-        super(Bishop, self).__init__(col, self.myVectorSet, "slider", '2657')
-        self.type = "b"
+        super(Bishop, self).__init__(col, self.myVectorSet, "slider", '2657', "b")
 
 
 class Queen(AdvancedPiece):
     def __init__(self, col):  # Both rook AND bishop's movesets
         self.myVectorSet = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
-        super(Queen, self).__init__(col, self.myVectorSet, "slider", '2655')
-        self.type = "q"
+        super(Queen, self).__init__(col, self.myVectorSet, "slider", '2655', "q")
 
 
 class King(AdvancedPiece):
     def __init__(self, col):  # same as queen in vectorset, but parent class makes moveset smaller
         self.myVectorSet = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
-        super(King, self).__init__(col, self.myVectorSet, "teleporter", '2654')
-        self.type = "k"
+        super(King, self).__init__(col, self.myVectorSet, "teleporter", '2654', "k")
         if col == "white":
             self.leftwardsColIndexIncrement = -1
             self.rightwardsColIndexIncrement = 1
@@ -140,16 +141,16 @@ class King(AdvancedPiece):
         castlingSet = []
         if self.hasNeverMoved:
             # Ensure the positions to the left of king are empty
-            if selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 1]).type == "_" \
-                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2]).type == "_":
+            if selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 1]).isBlankPiece \
+                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2]).isBlankPiece:
                 # And the left rook has never moved
                 leftRook = selectedPiece(board, [self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 3])
                 if leftRook.type=="r" and leftRook.hasNeverMoved:
                     castlingSet.append([self.homeRank, pieceLocation[1] + self.leftwardsColIndexIncrement * 2])
             # Ensure the positions to the right of king are empty
-            if selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 1]).type == "_" \
-                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 2]).type == "_" \
-                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 3]).type == "_":
+            if selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 1]).isBlankPiece \
+                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 2]).isBlankPiece \
+                    and selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 3]).isBlankPiece:
                 # And the right rook has never moved
                 rightRook = selectedPiece(board, [self.homeRank, pieceLocation[1] + self.rightwardsColIndexIncrement * 4])
                 if rightRook.type=="r" and rightRook.hasNeverMoved:
@@ -160,5 +161,5 @@ class King(AdvancedPiece):
 class Knight(AdvancedPiece):
     def __init__(self, col):  # similar vector set/moveset relationship as king (see parent class)
         self.myVectorSet = [[-2, -1], [-2, 1], [1, 2], [-1, 2], [2, -1], [2, 1], [-1, -2], [1, -2]]
-        super(Knight, self).__init__(col, self.myVectorSet, "teleporter", '2658')
-        self.type = "h"  # h for 'horse', as king is taken 'k'
+        # h for 'horse', as king is taken 'k'
+        super(Knight, self).__init__(col, self.myVectorSet, "teleporter", '2658', "h")

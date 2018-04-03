@@ -2,7 +2,8 @@ from builtins import ValueError, range, len, int
 from copy import deepcopy
 
 from chess.utils import selectedPiece, oppositeCol, pieceAt
-from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn, Piece
+from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn, Piece, BlankPiece
+
 
 def canPlayerLeaveCheckState(board, playerTurn):
     legalMoveSet = []
@@ -20,11 +21,11 @@ def canPlayerLeaveCheckState(board, playerTurn):
     return len(legalMoveSet) != 0
 
 
-def filterSelfCheckingMoves(board, selectedPieceCoords, listOfMoves, playerTurn, blankPiece):
+def filterSelfCheckingMoves(board, selectedPieceCoords, listOfMoves, playerTurn):
     """ Returns new list without the moves that causes own player to become checked"""
     pieceLegalMoveSet = []
     for candidateMove in listOfMoves:
-        newBoard = conductMove(board, selectedPieceCoords, candidateMove, playerTurn, blankPiece)
+        newBoard = conductMove(board, selectedPieceCoords, candidateMove, playerTurn)
         if not newBoard:
             continue
         # if it doesn't cause self to become checked, move is valid!
@@ -39,7 +40,7 @@ def printBoard(board):
     for row in board[:]:
         print(rowNumber, end=' ')
         for piece in row[:]:
-            if piece.type != "_":
+            if not piece.isBlankPiece:
                 print(piece.unicodeSymbol.decode("utf-8", "ignore"), end=' ')
             else:
                 # just for prettyness
@@ -87,7 +88,7 @@ def isBeingChecked(board, col):  # eg. isBeingChecked("black")
     return False
 
 
-def conductMove(existingBoard, startCoords, endCoords, playerCol, blankPiece):
+def conductMove(existingBoard, startCoords, endCoords, playerCol):
     """ Uses the supplied move on the existing board and returns a new board if the move is valid.
 
     If the move causes current player to be checked, False is returned. Does NOT modify existingBoard.
@@ -105,18 +106,18 @@ def conductMove(existingBoard, startCoords, endCoords, playerCol, blankPiece):
             print("**NOTE: Castling move detected, but not yet implemented -- simply moving king only**")
 
     newBoard[endCoords[0]][endCoords[1]] = newBoard[startCoords[0]][startCoords[1]]
-    newBoard[startCoords[0]][startCoords[1]] = blankPiece
+    newBoard[startCoords[0]][startCoords[1]] = BlankPiece()
     return newBoard
 
 
-def create(blank_piece):
+def create():
     b = []
 
     b.append([Rook("black"), Knight("black"), Bishop("black"), Queen("black"), King("black"), Bishop("black"), Knight("black"), Rook("black")])
     b.append([Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black"), Pawn("black")])
 
     for i in range(2, 6):
-        b.append([blank_piece, blank_piece, blank_piece, blank_piece, blank_piece, blank_piece, blank_piece, blank_piece])
+        b.append([BlankPiece(), BlankPiece(), BlankPiece(), BlankPiece(), BlankPiece(), BlankPiece(), BlankPiece(), BlankPiece()])
 
     b.append([Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white"), Pawn("white")])
     b.append([Rook("white"), Knight("white"), Bishop("white"), Queen("white"), King("white"), Bishop("white"), Knight("white"), Rook("white")])

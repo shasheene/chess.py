@@ -10,7 +10,6 @@ from builtins import ValueError, Exception, len, input, chr, str, ord, int, Keyb
 
 from chess.board import create, isBeingChecked, canPlayerLeaveCheckState, printBoard, oppositeCol, \
     filterSelfCheckingMoves, conductMove, selectedPiece
-from chess.pieces import Piece
 
 def a1ToPythonConvert(pair):
     """ Converts chess coords system to a list with origin top-left.
@@ -60,8 +59,7 @@ def requestUserMove(message):
 def main():
     playerTurn = "white"
 
-    blankPiece = Piece("", '0123')
-    gameBoard = create(blankPiece)
+    gameBoard = create()
 
     while 1:
         printBoard(gameBoard)
@@ -73,7 +71,7 @@ def main():
             coords = requestUserMove(' Select piece to move. Example: e2 \n')
             if not coords:
                 continue
-            if selectedPiece(gameBoard, coords).type == "_":
+            if selectedPiece(gameBoard, coords).isBlankPiece:
                 print('...Error invalid piece. Choose another piece\n')
                 continue
             if selectedPiece(gameBoard, coords).col != playerTurn:
@@ -82,7 +80,7 @@ def main():
 
             pieceTotalMoveSet = selectedPiece(gameBoard, coords).getMoveSet(gameBoard, coords)
             pieceTotalMoveSet += selectedPiece(gameBoard, coords).getAttackSet(gameBoard, coords)
-            pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, coords, pieceTotalMoveSet, playerTurn, blankPiece)
+            pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, coords, pieceTotalMoveSet, playerTurn)
             if len(pieceLegalMoveSet) == 0:
                 print('...Error no legal moves available. Choose another piece\n')
                 continue
@@ -107,7 +105,7 @@ def main():
                     print('Invalid move')
                     continue
 
-        gameBoard = conductMove(gameBoard, coords, moveTo, playerTurn, blankPiece)
+        gameBoard = conductMove(gameBoard, coords, moveTo, playerTurn)
         if not gameBoard:
             print("Illegal move not caught by game logic")
 
