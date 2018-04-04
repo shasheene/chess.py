@@ -43,18 +43,18 @@ class Pawn(Piece):
 
     def get_move_set(self, board, piece_location):
         move_set = []
+        i = piece_location[0] + self.forward_dir
+        j = piece_location[1]
         # Is space directly forward from us free?
-        if (piece_at(board, piece_location[0] + self.forward_dir,
-                     piece_location[1]).is_blank_piece):
-            move_set.append(Move(MoveType.NORMAL, piece_location, [piece_location[0] + self.forward_dir,
-                                                                   piece_location[1]]))
+        if not is_off_edge(i, j) and piece_at(board, i, j).is_blank_piece:
+            move_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
+
+            i = piece_location[0] + self.forward_dir * 2
+            j = piece_location[1]
             # If we haven't moved, is the space TWO forward from us free?
-            if self.has_never_moved and piece_at(board, piece_location[0] + self.forward_dir * 2,
-                                                 piece_location[1]).is_blank_piece:
+            if self.is_on_pawn_home_row(piece_location) and piece_at(board, i, j).is_blank_piece:
                 # Append pawn jump move
-                move_set.append(Move(MoveType.NORMAL, piece_location, [piece_location[0] + self.forward_dir * 2,
-                                                                       piece_location[1]]))
-        self.has_never_moved = False
+                move_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
         return move_set
 
     def get_attack_set(self, board, piece_location):
@@ -66,6 +66,10 @@ class Pawn(Piece):
             if not is_off_edge(i, j) and (piece_at(board, i, j).col == self.enemy_col):
                 attack_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
         return attack_set
+
+    def is_on_pawn_home_row(self, piece_location):
+        current_col_pawn_staring_rank = self.home_rank + self.forward_dir
+        return piece_location[0] == current_col_pawn_staring_rank
 
 
 class SlidingPiece(Piece):
