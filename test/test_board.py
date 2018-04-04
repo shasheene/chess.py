@@ -36,16 +36,16 @@ def create_list_of_moves(move_type, start_coord, end_coord_list):
     return to_return
 
 
-def test_sliding_pieces():
+def test_sliding_pieces(player_col, opponent_col):
     _ = BlankPiece()
-    r = Rook("white")
-    b = Bishop("white")
-    q = Queen("white")
+    r = Rook(player_col)
+    b = Bishop(player_col)
+    q = Queen(player_col)
 
     # Enemy rook
-    e = Rook("black")
+    e = Rook(opponent_col)
     # Friendly Pawn
-    f = Pawn("white")
+    f = Pawn(player_col)
     f.has_never_moved = False
 
     #            0  1  2  3  4  5  6  7
@@ -119,17 +119,17 @@ def test_sliding_pieces():
                                   ]))
 
 
-def test_teleporting_pieces():
+def test_teleporting_pieces(player_col, opponent_col):
     _ = BlankPiece()
 
-    k = King("white")
+    k = King(player_col)
     k.has_never_moved = False
-    h = Knight("white")
+    h = Knight(player_col)
 
     # Enemy rook
-    e = Rook("black")
+    e = Rook(opponent_col)
     # Friendly Pawn
-    f = Pawn("white")
+    f = Pawn(player_col)
     f.has_never_moved = False
 
     #        0  1  2  3  4  5  6  7
@@ -190,7 +190,7 @@ def test_teleporting_pieces():
                                   ]))
 
 
-def test_pawn_movements():
+def test_white_pawn_movements():
     __ = BlankPiece()
 
     p1 = Pawn("white")
@@ -226,7 +226,44 @@ def test_pawn_movements():
     assert_length(board[4][7].get_move_set(board, [4, 7]), 0)
 
 
+def test_black_pawn_movements():
+    __ = BlankPiece()
+
+    p1 = Pawn("black")
+    p2 = Pawn("black")
+    p3 = Pawn("black")
+
+    # Enemy rook
+    rr = Rook("white")
+
+    #             0   1   2   3   4   5   6   7
+    board = [
+                [__, __, __, __, __, __, __, __],  # 0
+                [p1, __, __, __, __, p2, __, __],  # 1
+                [__, __, __, __, rr, __, __, __],  # 2
+                [__, __, __, __, __, __, __, p3],  # 3
+                [__, __, __, __, __, __, rr, rr],  # 4
+                [__, __, __, __, __, __, __, __],  # 5
+                [__, __, __, __, __, __, __, __],  # 6
+                [__, __, __, __, __, __, __, __]  # 7
+            ]
+    # Left-most pawn
+    assert_length(board[1][0].get_attack_set(board, [1, 0]), 0)
+    assert_contains(board[1][0].get_move_set(board, [1, 0]),
+                    create_list_of_moves(MoveType.NORMAL, [1, 0], [[2, 0], [3, 0]]))
+
+    assert_contains(board[1][5].get_attack_set(board, [1, 5]),
+                    create_list_of_moves(MoveType.NORMAL, [1, 5], [[2, 4]]))
+    assert_contains(board[1][5].get_move_set(board, [1, 5]),
+                    create_list_of_moves(MoveType.NORMAL, [1, 5], [[2, 5], [3, 5]]))
+
+    assert_contains(board[3][7].get_attack_set(board, [3, 7]), create_list_of_moves(MoveType.NORMAL, [3, 7], [[4, 6]]))
+    assert_length(board[3][7].get_move_set(board, [3, 7]), 0)
+
+
 def test_check():
+    # Opposite col test omitted as it requires an alternate implementation *and* player color doesn't effect this test.
+
     _ = BlankPiece()
 
     k = King("white")
@@ -266,7 +303,11 @@ def test_check():
     assert_false("Should be checkmate", can_player_leave_check_state(board, "white"))
 
 
-test_sliding_pieces()
-test_teleporting_pieces()
-test_pawn_movements()
+colors = [{'player': "white", 'opponent': "black"}, {'player': "black", 'opponent': "white"}]
+for color in colors:
+    test_sliding_pieces(color['player'], color['opponent'])
+    test_teleporting_pieces(color['player'], color['opponent'])
+
+test_white_pawn_movements()
+test_black_pawn_movements()
 test_check()
