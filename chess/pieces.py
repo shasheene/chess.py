@@ -68,61 +68,65 @@ class Pawn(Piece):
         return attack_set
 
 
-class AdvancedPiece(Piece):
-    def __init__(self, col, list_of_unit_moves, movement_style, white_piece_unicode_codepoint, ascii_char):
-        super(AdvancedPiece, self).__init__(col, white_piece_unicode_codepoint, ascii_char)
+class SlidingPiece(Piece):
+    def __init__(self, col, list_of_unit_moves, white_piece_unicode_codepoint, ascii_char):
+        super(SlidingPiece, self).__init__(col, white_piece_unicode_codepoint, ascii_char)
         self.vector_dir = list_of_unit_moves
-        # movement_style either "slider" (ie rook,bishop,queen)
-        # or "teleporter" (king,knight) with respect to move vectors
-        self.movement_style = movement_style
 
     def get_attack_set(self, board, piece_location):
         attack_set = []
         for vector in self.vector_dir:
             i = piece_location[0] + vector[0]
             j = piece_location[1] + vector[1]
-            # print 'Checking vector',
-            # print vector
-            if self.movement_style == "slider":
-                hit_enemy_this_dir = False  # Slide until first enemy
-                while not is_off_edge(i, j) and piece_at(board, i, j).col != self.col and not hit_enemy_this_dir:
-                    # print 'Adding: ' + str(i) + "," + str(j)
-                    attack_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
-                    if piece_at(board, i, j).col == opposite_col(self.col):
-                        hit_enemy_this_dir = True  # stop sliding this dir if hit enemy
-                    i += vector[0]
-                    j += vector[1]
-
-            elif self.movement_style == "teleporter":
-                if not is_off_edge(i, j) and piece_at(board, i, j).col != self.col:
-                    # print 'Adding: ' + str(i) + "," + str(j)
-                    attack_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
-
+            # Slide until first enemy
+            hit_enemy_this_dir = False
+            while not is_off_edge(i, j) and piece_at(board, i, j).col != self.col and not hit_enemy_this_dir:
+                attack_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
+                if piece_at(board, i, j).col == opposite_col(self.col):
+                    # Stop sliding this dir if hit enemy.
+                    hit_enemy_this_dir = True
+                i += vector[0]
+                j += vector[1]
         return attack_set
 
 
-class Rook(AdvancedPiece):
+class TeleportingPiece(Piece):
+    def __init__(self, col, list_of_teleport_offsets, white_piece_unicode_codepoint, ascii_char):
+        super(TeleportingPiece, self).__init__(col, white_piece_unicode_codepoint, ascii_char)
+        self.teleport_offsets = list_of_teleport_offsets
+
+    def get_attack_set(self, board, piece_location):
+        attack_set = []
+        for offset in self.teleport_offsets:
+            i = piece_location[0] + offset[0]
+            j = piece_location[1] + offset[1]
+            if not is_off_edge(i, j) and piece_at(board, i, j).col != self.col:
+                attack_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
+        return attack_set
+
+
+class Rook(SlidingPiece):
     def __init__(self, col):
         self.vector_dir = [[-1, 0], [1, 0], [0, -1], [0, 1]]
-        super(Rook, self).__init__(col, self.vector_dir, "slider", '2656', "r")
+        super(Rook, self).__init__(col, self.vector_dir,  '2656', "r")
 
 
-class Bishop(AdvancedPiece):
+class Bishop(SlidingPiece):
     def __init__(self, col):
         self.vector_dir = [[-1, -1], [-1, +1], [+1, -1], [1, 1]]
-        super(Bishop, self).__init__(col, self.vector_dir, "slider", '2657', "b")
+        super(Bishop, self).__init__(col, self.vector_dir,  '2657', "b")
 
 
-class Queen(AdvancedPiece):
+class Queen(SlidingPiece):
     def __init__(self, col):  # Both rook AND bishop's movesets
         self.vector_dir = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
-        super(Queen, self).__init__(col, self.vector_dir, "slider", '2655', "q")
+        super(Queen, self).__init__(col, self.vector_dir,  '2655', "q")
 
 
-class King(AdvancedPiece):
+class King(TeleportingPiece):
     def __init__(self, col):  # same as queen in vectorset, but parent class makes moveset smaller
-        self.vector_dir = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
-        super(King, self).__init__(col, self.vector_dir, "teleporter", '2654', "k")
+        self.teleport_offsets = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
+        super(King, self).__init__(col, self.teleport_offsets, '2654', "k")
         if col == "white":
             self.leftwards_col_index_increment = -1
             self.rightwards_col_index_increment = 1
@@ -169,8 +173,8 @@ class King(AdvancedPiece):
         return castling_set
 
 
-class Knight(AdvancedPiece):
-    def __init__(self, col):  # similar vector set/moveset relationship as king (see parent class)
-        self.vector_dir = [[-2, -1], [-2, 1], [1, 2], [-1, 2], [2, -1], [2, 1], [-1, -2], [1, -2]]
+class Knight(TeleportingPiece):
+    def __init__(self, col):
+        self.teleport_offsets = [[-2, -1], [-2, 1], [1, 2], [-1, 2], [2, -1], [2, 1], [-1, -2], [1, -2]]
         # h for 'horse', as king is taken 'k'
-        super(Knight, self).__init__(col, self.vector_dir, "teleporter", '2658', "h")
+        super(Knight, self).__init__(col, self.teleport_offsets, '2658', "h")

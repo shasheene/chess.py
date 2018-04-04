@@ -25,7 +25,7 @@ def create_list_of_moves(move_type, start_coord, end_coord_list):
     return to_return
 
 
-def test_sliders():
+def test_sliding_pieces():
     _ = BlankPiece()
     r = Rook("white")
     b = Bishop("white")
@@ -108,7 +108,7 @@ def test_sliders():
                                   ]))
 
 
-def test_teleporters():
+def test_teleporting_pieces():
     _ = BlankPiece()
 
     k = King("white")
@@ -215,6 +215,6 @@ def test_pawn_movements():
     assert_length(board[4][7].get_move_set(board, [4, 7]), 0)
 
 
-test_sliders()
-test_teleporters()
+test_sliding_pieces()
+test_teleporting_pieces()
 test_pawn_movements()
