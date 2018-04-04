@@ -82,7 +82,6 @@ def is_being_checked(board, col):
     king_loc = find_king(board, col)
     team_attack_set = get_team_move_set(board, opposite_col(col), "attackset")
 
-    # print "King is at :" + str(king_loc)
     for move in team_attack_set:
         if move.end_coords[0] == king_loc[0] and move.end_coords[1] == king_loc[1]:
             return True

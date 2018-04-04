@@ -1,3 +1,4 @@
+from chess.board import is_being_checked, can_player_leave_check_state
 from chess.move import Move, MoveType
 from chess.pieces import BlankPiece, Rook, Pawn, King, Bishop, Queen, Knight
 
@@ -16,6 +17,16 @@ def assert_contains(actual_move_list, expected_move_list):
 def assert_length(input_list, length):
     if len(input_list) != length:
         raise AssertionError("Expected list of length " + str(length) + " but was " + str(len(input_list)))
+
+
+def assert_true(msg, boolean):
+    if not boolean:
+        raise AssertionError(msg)
+
+
+def assert_false(msg, boolean):
+    if boolean:
+        raise AssertionError(msg)
 
 
 def create_list_of_moves(move_type, start_coord, end_coord_list):
@@ -215,6 +226,47 @@ def test_pawn_movements():
     assert_length(board[4][7].get_move_set(board, [4, 7]), 0)
 
 
+def test_check():
+    _ = BlankPiece()
+
+    k = King("white")
+    k.has_never_moved = False
+
+    p = Pawn("black")
+    p.has_never_moved = False
+
+    #            0  1  2  3  4  5  6  7
+    board = [
+                [_, _, _, _, _, _, _, _],  # 0
+                [_, _, _, _, _, _, _, _],  # 1
+                [_, _, _, _, _, p, _, _],  # 2
+                [_, _, _, _, k, _, _, _],  # 3
+                [_, _, _, _, _, _, _, _],  # 4
+                [_, _, _, _, _, _, _, _],  # 5
+                [_, _, _, _, _, _, _, _],  # 6
+                [_, _, _, _, _, _, _, _]   # 7
+            ]
+    assert_true("King should be checked", is_being_checked(board, "white"))
+
+    # Enemy rook
+    r = Rook("black")
+    q = Queen("black")
+
+    #            0  1  2  3  4  5  6  7
+    board = [
+                [_, _, _, _, _, _, _, _],  # 0
+                [_, _, _, _, _, _, _, _],  # 1
+                [_, _, _, _, _, _, _, _],  # 2
+                [_, _, _, _, _, _, _, _],  # 3
+                [_, _, _, _, _, _, _, _],  # 4
+                [_, _, _, _, _, _, _, _],  # 5
+                [_, _, _, _, _, _, r, _],  # 6
+                [_, _, k, _, _, _, _, q]   # 7
+            ]
+    assert_false("Should be checkmate", can_player_leave_check_state(board, "white"))
+
+
 test_sliding_pieces()
 test_teleporting_pieces()
 test_pawn_movements()
+test_check()
