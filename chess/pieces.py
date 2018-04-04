@@ -128,53 +128,44 @@ class Queen(SlidingPiece):
 
 
 class King(TeleportingPiece):
+    KING_HOME_COL = 4
+
     def __init__(self, col):  # same as queen in vectorset, but parent class makes moveset smaller
         self.teleport_offsets = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
         super(King, self).__init__(col, self.teleport_offsets, '2654', "k")
-        if col == "white":
-            self.leftwards_col_index_increment = -1
-            self.rightwards_col_index_increment = 1
-        else:
-            self.leftwards_col_index_increment = 1
-            self.rightwards_col_index_increment = -1
 
-    def _get_castling_positions(self):
-        self.castlingPositions = [[self.home_rank, "1"], [self.home_rank, "6"]]
-
-    # Override teleporter to get castling
-    def get_attack_set(self, board, piece_location):
-        attack_set = super(King, self).get_attack_set(board, piece_location)
-        attack_set += self.get_castling_set(board, piece_location)
-        return attack_set
+    def get_move_set(self, board, piece_location):
+        return self.get_castling_set(board, piece_location)
 
     def get_castling_set(self, board, piece_location):
         castling_set = []
         if self.has_never_moved:
-            # Ensure the positions to the left of king are empty
-            if selected_piece(board,
-                              [self.home_rank, piece_location[1] + self.leftwards_col_index_increment * 1]).is_blank_piece \
-                    and selected_piece(board, [self.home_rank,
-                                               piece_location[1] + self.leftwards_col_index_increment * 2]).is_blank_piece:
-                # And the left rook has never moved
-                left_rook = selected_piece(board,
-                                           [self.home_rank, piece_location[1] + self.leftwards_col_index_increment * 3])
-                if left_rook.type == "r" and left_rook.has_never_moved:
-                    castling_set.append(Move(MoveType.CASTLING, piece_location,
-                                             [self.home_rank, piece_location[1] + self.leftwards_col_index_increment * 2]))
-            # Ensure the positions to the right of king are empty
-            if selected_piece(board,
-                              [self.home_rank, piece_location[1] + self.rightwards_col_index_increment * 1]).is_blank_piece \
-                    and selected_piece(board, [self.home_rank,
-                                               piece_location[1] + self.rightwards_col_index_increment * 2]).is_blank_piece \
-                    and selected_piece(board, [self.home_rank, piece_location[
-                                                                   1] + self.rightwards_col_index_increment * 3]).is_blank_piece:
-                # And the right rook has never moved
-                right_rook = selected_piece(board,
-                                            [self.home_rank, piece_location[1] + self.rightwards_col_index_increment * 4])
-                if right_rook.type == "r" and right_rook.has_never_moved:
-                    castling_set.append(Move(MoveType.CASTLING, piece_location, [self.home_rank, piece_location[
-                        1] + self.rightwards_col_index_increment * 3]))
+            if King.can_castle_on_col_a_rook(board, self.home_rank):
+                castling_set.append(Move(MoveType.CASTLING, piece_location,
+                                         [self.home_rank, 1]))
+
+            if King.can_castle_on_col_h_rook(board, self.home_rank):
+                castling_set.append(Move(MoveType.CASTLING, piece_location,
+                                         [self.home_rank, 6]))
+
         return castling_set
+
+    @staticmethod
+    def can_castle_on_col_a_rook(board, home_rank):
+        # Check the three positions to the rook in column A
+        a_col_piece = selected_piece(board, [home_rank, 0])
+        return (selected_piece(board, [home_rank, 3]).is_blank_piece
+                and selected_piece(board, [home_rank, 2]).is_blank_piece
+                and selected_piece(board, [home_rank, 1]).is_blank_piece
+                and a_col_piece.type == "r" and a_col_piece.has_never_moved)
+
+    @staticmethod
+    def can_castle_on_col_h_rook(board, home_rank):
+        # Check the three positions to the rook in column H
+        h_col_piece = selected_piece(board, [home_rank, 7])
+        return (selected_piece(board, [home_rank, 5]).is_blank_piece
+                and selected_piece(board, [home_rank, 6]).is_blank_piece
+                and h_col_piece.type == "r" and h_col_piece.has_never_moved)
 
 
 class Knight(TeleportingPiece):

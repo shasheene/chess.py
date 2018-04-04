@@ -1,6 +1,7 @@
 from builtins import range, len, int
 from copy import deepcopy
 
+from chess.move import MoveType, Move
 from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn, BlankPiece
 from chess.utils import selected_piece, opposite_col, piece_at
 
@@ -104,12 +105,22 @@ def conduct_move(existing_board, candidate_move, player_col):
 
     if selected_piece(new_board, start_coords).col != player_col:
         return False
-    if selected_piece(new_board, start_coords).type == "k":
-        castling_set = selected_piece(new_board, start_coords).get_castling_set(new_board, start_coords)
-        if len(castling_set) > 0:
-            print("**NOTE: Castling move detected, but not yet implemented -- simply moving king only**")
+    if candidate_move.move_type == MoveType.CASTLING:
+        if candidate_move.end_coords[1] < King.KING_HOME_COL:
+            # Move column a rook to other side of where King will move
+            rook = new_board[start_coords[0]][0]
+            new_board[start_coords[0]][2] = rook
+            new_board[start_coords[0]][0] = BlankPiece()
+        else:
+            # Move column h rook to other side of where King will move
+            rook = new_board[start_coords[0]][7]
+            new_board[start_coords[0]][5] = rook
+            new_board[start_coords[0]][7] = BlankPiece()
+        rook.has_never_moved = False
 
-    new_board[end_coords[0]][end_coords[1]] = new_board[start_coords[0]][start_coords[1]]
+    piece = new_board[start_coords[0]][start_coords[1]]
+    new_board[end_coords[0]][end_coords[1]] = piece
+    piece.has_never_moved = False
     new_board[start_coords[0]][start_coords[1]] = BlankPiece()
     return new_board
 

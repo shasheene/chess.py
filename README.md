@@ -22,7 +22,7 @@ Core gameplay is complete, but some chess mechanics are not yet implemented:
 - [x] Knight
 - [x] Bishop
 - [x] King
-  - [] King/Rook Castling
+  - [x] King/Rook Castling
 - [x] Rook
 - [x] Queen
 - [x] Main game logic: Turn-based basic playable game mechanics
