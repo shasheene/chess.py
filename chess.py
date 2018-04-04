@@ -8,10 +8,11 @@ Text-based chess game.
 import sys
 from builtins import ValueError, Exception, len, input, chr, str, ord, int, KeyboardInterrupt
 
-from chess.board import create, isBeingChecked, canPlayerLeaveCheckState, printBoard, oppositeCol, \
-    filterSelfCheckingMoves, conductMove, selectedPiece
+from chess.board import create, is_being_checked, can_player_leave_check_state, print_board, opposite_col, \
+    filter_self_checking_moves, conduct_move, selected_piece
 
-def a1ToPythonConvert(pair):
+
+def a1_to_py_convert(pair):
     """ Converts chess coords system to a list with origin top-left.
 
     Chess has origin bottom-left and counts colums a to h and rows numbered 1 to 8. 
@@ -28,10 +29,10 @@ def a1ToPythonConvert(pair):
     return row, col
 
 
-def pythonToa1Convert(pair):
+def py_to_a1_convert(pair):
     col = chr(pair[1] + 97)  # In ascii, 'a'=97
     row = str(8 - pair[0])  # Chess counts from 1, not 0. (the row component of coords 'e2' to is 1, not 2.)
-    return (col + row)
+    return col + row
 
 
 def take_input():
@@ -40,16 +41,17 @@ def take_input():
     # Ignore things after spaces
     return r.split()[0:1]
 
-def requestUserMove(message):
+
+def request_user_move(message):
     print(message)
-    rawInput = take_input()
-    if len(rawInput) == 0:
+    raw_input = take_input()
+    if len(raw_input) == 0:
         print("No input given.\n")
         return False
 
     try:
         # e4 becomes [3,3]
-        move = a1ToPythonConvert(rawInput[0])
+        move = a1_to_py_convert(raw_input[0])
     except (ValueError, Exception):
         print("Error occurred processing input. Please try again.\n")
         return False
@@ -57,67 +59,67 @@ def requestUserMove(message):
 
 
 def main():
-    playerTurn = "white"
+    player_turn = "white"
 
-    gameBoard = create()
+    game_board = create()
 
     while 1:
-        printBoard(gameBoard)
-        print(playerTurn + 's turn. Select piece')
+        print_board(game_board)
+        print(player_turn + 's turn. Select piece')
 
-        validSelection = False
-        coords = False
-        while not validSelection:
-            coords = requestUserMove(' Select piece to move. Example: e2 \n')
+        valid_selection = False
+        while not valid_selection:
+            coords = request_user_move(' Select piece to move. Example: e2 \n')
             if not coords:
                 continue
-            if selectedPiece(gameBoard, coords).isBlankPiece:
+            if selected_piece(game_board, coords).is_blank_piece:
                 print('...Error invalid piece. Choose another piece\n')
                 continue
-            if selectedPiece(gameBoard, coords).col != playerTurn:
+            if selected_piece(game_board, coords).col != player_turn:
                 print('...Error selected opponents\' piece. Choose another piece\n')
                 continue
 
-            pieceTotalMoveSet = selectedPiece(gameBoard, coords).getMoveSet(gameBoard, coords)
-            pieceTotalMoveSet += selectedPiece(gameBoard, coords).getAttackSet(gameBoard, coords)
-            pieceLegalMoveSet = filterSelfCheckingMoves(gameBoard, pieceTotalMoveSet, playerTurn)
-            if len(pieceLegalMoveSet) == 0:
+            piece_total_move_set = selected_piece(game_board, coords).get_move_set(game_board, coords)
+            piece_total_move_set += selected_piece(game_board, coords).get_attack_set(game_board, coords)
+            piece_legal_move_set = filter_self_checking_moves(game_board, piece_total_move_set, player_turn)
+            if len(piece_legal_move_set) == 0:
                 print('...Error no legal moves available. Choose another piece\n')
                 continue
-            validSelection = True
+            valid_selection = True
 
-            print('Selected: \'' + selectedPiece(gameBoard, coords).type + '\'.', )
+            print('Selected: \'' + selected_piece(game_board, coords).type + '\'.', )
             print('Possible moves: ', )
-            for i in pieceLegalMoveSet:
-                print(pythonToa1Convert(i.endCoords), )
+            for move in piece_legal_move_set:
+                print(py_to_a1_convert(move.end_coords), )
             print()
 
             # Choose end location:
-            chosenMove = False
-            while not chosenMove:
-                userEndCoords = requestUserMove(' Select location to move piece to: ')
-                if not userEndCoords:
+            chosen_move = False
+            while not chosen_move:
+                user_end_coords = request_user_move(' Select location to move piece to: ')
+                if not user_end_coords:
                     continue
-                for move in pieceLegalMoveSet:
-                    if move.endCoords[0] == userEndCoords[0] and move.endCoords[1] == userEndCoords[1]:
-                        chosenMove = move
-                if not chosenMove:
+                for move in piece_legal_move_set:
+                    if move.end_coords[0] == user_end_coords[0] and move.end_coords[1] == user_end_coords[1]:
+                        chosen_move = move
+                if not chosen_move:
                     print('Invalid move')
                     continue
 
-        gameBoard = conductMove(gameBoard, chosenMove, playerTurn)
-        if not gameBoard:
+        game_board = conduct_move(game_board, chosen_move, player_turn)
+        if not game_board:
             print("Illegal move not caught by game logic")
 
-        if isBeingChecked(gameBoard, oppositeCol(playerTurn)):
-            if canPlayerLeaveCheckState(gameBoard, oppositeCol(playerTurn)):
+        if is_being_checked(game_board, opposite_col(player_turn)):
+            if can_player_leave_check_state(game_board, opposite_col(player_turn)):
                 print('CHECK\n')
             else:
-                printBoard(gameBoard)
-                print('CHECKMATE. ' + playerTurn + ' wins!\n')
+                print_board(game_board)
+                print('CHECKMATE. ' + player_turn + ' wins!\n')
                 sys.exit(0)
 
-        playerTurn = oppositeCol(playerTurn)
+        player_turn = opposite_col(player_turn)
+
 
 if __name__ == "__main__":
     try:

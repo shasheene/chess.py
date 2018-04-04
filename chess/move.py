@@ -9,26 +9,26 @@ class MoveType(Enum):
 
 
 class Move(object):
-    def __init__(self, moveType, startCoords, endCoords):
-        self.moveType = moveType
-        self.startCoords = startCoords
-        self.endCoords = endCoords
-        self.promotionPiece = False
+    def __init__(self, move_type, start_coords, end_coords):
+        self.move_type = move_type
+        self.start_coords = start_coords
+        self.end_coords = end_coords
+        self.promotion_piece = False
 
     @classmethod
-    def en_passant(self, startCoords, endCoords, promoteTo):
-        self.moveType = MoveType.EN_PASSANT
-        self.startCoords = startCoords
-        self.endCoords = endCoords
-        self.promotionPiece = promoteTo
+    def en_passant(cls, start_coords, end_coords, promote_to):
+        cls.move_type = MoveType.EN_PASSANT
+        cls.start_coords = start_coords
+        cls.end_coords = end_coords
+        cls.promotion_piece = promote_to
 
     def __repr__(self):
-        strRepr = "" + str(self.moveType) + " " + str(self.startCoords) + " " + str(self.endCoords)
-        if self.moveType == MoveType.PROMOTION:
-            strRepr += " " + str(self.promoteTo)
-        return strRepr
+        str_repr = "" + str(self.move_type) + " " + str(self.start_coords) + " " + str(self.end_coords)
+        if self.move_type == MoveType.PROMOTION:
+            str_repr += " " + str(self.promotion_piece)
+        return str_repr
 
     def __eq__(self, obj):
-        return (self.moveType == obj.moveType) and (self.startCoords == obj.startCoords)\
-               and (self.endCoords == obj.endCoords) and (self.promotionPiece == obj.promotionPiece)
+        return (self.move_type == obj.move_type) and (self.start_coords == obj.start_coords) \
+               and (self.end_coords == obj.end_coords) and (self.promotion_piece == obj.promotion_piece)
 

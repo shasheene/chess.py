@@ -36,7 +36,7 @@ def test_sliders():
     e = Rook("black")
     # Friendly Pawn
     f = Pawn("white")
-    f.hasNeverMoved = False
+    f.has_never_moved = False
 
     # Recall      0  1  2  3  4  5  6  7 indexing
     board.append([r, _, _, e, _, _, _, _])
@@ -49,8 +49,8 @@ def test_sliders():
     board.append([_, _, e, _, _, _, _, f])
 
     # Top-left rook
-    assert_length(board[0][0].getMoveSet(board, [0, 0]), 0)
-    assert_contains(board[0][0].getAttackSet(board, [0, 0]),
+    assert_length(board[0][0].get_move_set(board, [0, 0]), 0)
+    assert_contains(board[0][0].get_attack_set(board, [0, 0]),
                     create_list_of_moves(MoveType.NORMAL, [0, 0],
                                          [   # Down
                                       [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0],
@@ -59,8 +59,8 @@ def test_sliders():
                                   ]))
 
     # Second rook
-    assert_length(board[1][6].getMoveSet(board, [1, 6]), 0)
-    assert_contains(board[1][6].getAttackSet(board, [1, 6]),
+    assert_length(board[1][6].get_move_set(board, [1, 6]), 0)
+    assert_contains(board[1][6].get_attack_set(board, [1, 6]),
                     create_list_of_moves(MoveType.NORMAL, [1, 6],
                                          [   # Up
                                       [0, 6],
@@ -71,8 +71,8 @@ def test_sliders():
                                   ]))
 
     # Bishop
-    assert_length(board[5][3].getMoveSet(board, [5, 3]), 0)
-    assert_contains(board[5][3].getAttackSet(board, [5, 3]),
+    assert_length(board[5][3].get_move_set(board, [5, 3]), 0)
+    assert_contains(board[5][3].get_attack_set(board, [5, 3]),
                     create_list_of_moves(MoveType.NORMAL, [5, 3],
                                          [   # North-west
                                       [4, 2], [3, 1], [2, 0],
@@ -85,8 +85,8 @@ def test_sliders():
                                   ]))
 
     # Queen
-    assert_length(board[2][2].getMoveSet(board, [2, 2]), 0)
-    assert_contains(board[2][2].getAttackSet(board, [2, 2]),
+    assert_length(board[2][2].get_move_set(board, [2, 2]), 0)
+    assert_contains(board[2][2].get_attack_set(board, [2, 2]),
                     create_list_of_moves(MoveType.NORMAL, [2, 2],
                                          [   # Down
                                       [3, 2], [4, 2], [5, 2], [6, 2], [7, 2],
@@ -112,14 +112,14 @@ def test_teleporters():
     _ = BlankPiece()
 
     k = King("white")
-    k.hasNeverMoved = False
+    k.has_never_moved = False
     h = Knight("white")
 
     # Enemy rook
     e = Rook("black")
     # Friendly Pawn
     f = Pawn("white")
-    f.hasNeverMoved = False
+    f.has_never_moved = False
 
     # Recall      0  1  2  3  4  5  6  7 indexing
     board.append([h, _, _, _, _, _, _, _])
@@ -132,8 +132,8 @@ def test_teleporters():
     board.append([_, _, _, _, _, _, _, k])
 
     # Top-left knight
-    assert_length(board[0][0].getMoveSet(board, [0, 0]), 0)
-    assert_contains(board[0][0].getAttackSet(board, [0, 0]),
+    assert_length(board[0][0].get_move_set(board, [0, 0]), 0)
+    assert_contains(board[0][0].get_attack_set(board, [0, 0]),
                     create_list_of_moves(MoveType.NORMAL, [0, 0],
                                          [
                                       [1, 2],
@@ -141,8 +141,8 @@ def test_teleporters():
                                   ]))
 
     # Knight near bottom
-    assert_length(board[6][1].getMoveSet(board, [6, 1]), 0)
-    assert_contains(board[6][1].getAttackSet(board, [6, 1]),
+    assert_length(board[6][1].get_move_set(board, [6, 1]), 0)
+    assert_contains(board[6][1].get_attack_set(board, [6, 1]),
                     create_list_of_moves(MoveType.NORMAL, [6, 1],
                                          [
                                       [4, 0],
@@ -152,8 +152,8 @@ def test_teleporters():
                                   ]))
 
     # Middle knight
-    assert_length(board[4][4].getMoveSet(board, [4, 4]), 0)
-    assert_contains(board[4][4].getAttackSet(board, [4, 4]),
+    assert_length(board[4][4].get_move_set(board, [4, 4]), 0)
+    assert_contains(board[4][4].get_attack_set(board, [4, 4]),
                     create_list_of_moves(MoveType.NORMAL, [4, 4],
                                          [
                                       [2, 5],
@@ -166,8 +166,8 @@ def test_teleporters():
                                   ]))
 
     # Bottom-right king
-    assert_length(board[7][7].getMoveSet(board, [7, 7]), 0)
-    assert_contains(board[7][7].getAttackSet(board, [7, 7]),
+    assert_length(board[7][7].get_move_set(board, [7, 7]), 0)
+    assert_contains(board[7][7].get_attack_set(board, [7, 7]),
                     create_list_of_moves(MoveType.NORMAL, [7, 7],
                                          [   # Up
                                       [6, 7],
@@ -185,7 +185,7 @@ def test_pawn_movements():
     p1 = Pawn("white")
     p2 = Pawn("white")
     p3 = Pawn("white")
-    p3.hasNeverMoved = False
+    p3.has_never_moved = False
 
     # Enemy rook
     rr = Rook("black")
@@ -201,17 +201,17 @@ def test_pawn_movements():
     board.append([__, __, __, __, __, __, __, __])
 
     # Left-most pawn
-    assert_length(board[6][0].getAttackSet(board, [6, 0]), 0)
-    assert_contains(board[6][0].getMoveSet(board, [6, 0]),
+    assert_length(board[6][0].get_attack_set(board, [6, 0]), 0)
+    assert_contains(board[6][0].get_move_set(board, [6, 0]),
                     create_list_of_moves(MoveType.NORMAL, [6, 0], [[5, 0], [4, 0]]))
 
-    assert_contains(board[6][5].getAttackSet(board, [6, 5]),
+    assert_contains(board[6][5].get_attack_set(board, [6, 5]),
                     create_list_of_moves(MoveType.NORMAL, [6, 5], [[5, 4]]))
-    assert_contains(board[6][5].getMoveSet(board, [6, 5]),
+    assert_contains(board[6][5].get_move_set(board, [6, 5]),
                     create_list_of_moves(MoveType.NORMAL, [6, 5], [[5, 5], [4, 5]]))
 
-    assert_contains(board[4][7].getAttackSet(board, [4, 7]), create_list_of_moves(MoveType.NORMAL, [4, 7], [[3, 6]]))
-    assert_length(board[4][7].getMoveSet(board, [4, 7]), 0)
+    assert_contains(board[4][7].get_attack_set(board, [4, 7]), create_list_of_moves(MoveType.NORMAL, [4, 7], [[3, 6]]))
+    assert_length(board[4][7].get_move_set(board, [4, 7]), 0)
 
 
 test_sliders()
