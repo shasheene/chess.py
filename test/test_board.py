@@ -26,7 +26,6 @@ def create_list_of_moves(move_type, start_coord, end_coord_list):
 
 
 def test_sliders():
-    board = []
     _ = BlankPiece()
     r = Rook("white")
     b = Bishop("white")
@@ -38,15 +37,17 @@ def test_sliders():
     f = Pawn("white")
     f.has_never_moved = False
 
-    # Recall      0  1  2  3  4  5  6  7 indexing
-    board.append([r, _, _, e, _, _, _, _])
-    board.append([_, _, _, _, _, _, r, _])
-    board.append([_, _, q, _, _, _, f, _])
-    board.append([_, _, _, _, _, _, _, _])
-    board.append([_, _, _, _, _, _, _, _])
-    board.append([_, _, _, b, _, _, _, _])
-    board.append([_, _, _, _, _, _, _, _])
-    board.append([_, _, e, _, _, _, _, f])
+    #            0  1  2  3  4  5  6  7
+    board = [
+                [r, _, _, e, _, _, _, _],  # 0
+                [_, _, _, _, _, _, r, _],  # 1
+                [_, _, q, _, _, _, f, _],  # 2
+                [_, _, _, _, _, _, _, _],  # 3
+                [_, _, _, _, _, _, _, _],  # 4
+                [_, _, _, b, _, _, _, _],  # 5
+                [_, _, _, _, _, _, _, _],  # 6
+                [_, _, e, _, _, _, _, f]   # 7
+            ]
 
     # Top-left rook
     assert_length(board[0][0].get_move_set(board, [0, 0]), 0)
@@ -108,7 +109,6 @@ def test_sliders():
 
 
 def test_teleporters():
-    board = []
     _ = BlankPiece()
 
     k = King("white")
@@ -121,16 +121,17 @@ def test_teleporters():
     f = Pawn("white")
     f.has_never_moved = False
 
-    # Recall      0  1  2  3  4  5  6  7 indexing
-    board.append([h, _, _, _, _, _, _, _])
-    board.append([_, _, _, _, _, _, _, _])
-    board.append([_, _, _, f, _, e, _, _])
-    board.append([_, _, _, _, _, _, _, _])
-    board.append([_, _, _, _, h, _, _, _])
-    board.append([_, _, _, _, _, _, _, _])
-    board.append([_, h, _, _, _, _, _, _])
-    board.append([_, _, _, _, _, _, _, k])
-
+    #        0  1  2  3  4  5  6  7
+    board = [
+                [h, _, _, _, _, _, _, _],  # 0
+                [_, _, _, _, _, _, _, _],  # 1
+                [_, _, _, f, _, e, _, _],  # 2
+                [_, _, _, _, _, _, _, _],  # 3
+                [_, _, _, _, h, _, _, _],  # 4
+                [_, _, _, _, _, _, _, _],  # 5
+                [_, h, _, _, _, _, _, _],  # 6
+                [_, _, _, _, _, _, _, k]   # 7
+            ]
     # Top-left knight
     assert_length(board[0][0].get_move_set(board, [0, 0]), 0)
     assert_contains(board[0][0].get_attack_set(board, [0, 0]),
@@ -179,7 +180,6 @@ def test_teleporters():
 
 
 def test_pawn_movements():
-    board = []
     __ = BlankPiece()
 
     p1 = Pawn("white")
@@ -190,16 +190,17 @@ def test_pawn_movements():
     # Enemy rook
     rr = Rook("black")
 
-    # Recall       0   1   2   3   4   5   6   7  indexing
-    board.append([__, __, __, __, __, __, __, __])
-    board.append([__, __, __, __, __, __, __, __])
-    board.append([__, __, __, __, __, __, __, __])
-    board.append([__, __, __, __, __, __, rr, rr])
-    board.append([__, __, __, __, __, __, __, p3])
-    board.append([__, __, __, __, rr, __, __, __])
-    board.append([p1, __, __, __, __, p2, __, __])
-    board.append([__, __, __, __, __, __, __, __])
-
+    #             0   1   2   3   4   5   6   7
+    board = [
+                [__, __, __, __, __, __, __, __],  # 0
+                [__, __, __, __, __, __, __, __],  # 1
+                [__, __, __, __, __, __, __, __],  # 2
+                [__, __, __, __, __, __, rr, rr],  # 3
+                [__, __, __, __, __, __, __, p3],  # 4
+                [__, __, __, __, rr, __, __, __],  # 5
+                [p1, __, __, __, __, p2, __, __],  # 6
+                [__, __, __, __, __, __, __, __]  # 7
+            ]
     # Left-most pawn
     assert_length(board[6][0].get_attack_set(board, [6, 0]), 0)
     assert_contains(board[6][0].get_move_set(board, [6, 0]),
