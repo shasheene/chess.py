@@ -17,7 +17,7 @@ In the future I will add a graphical user interface (likely using the 'pygame' l
 #### Features
 Core gameplay is complete, but some chess mechanics are not yet implemented:
 - [x] Pawn
-  - [] Promotion
+  - [x] Promotion
   - [] [En passant](https://en.wikipedia.org/wiki/En_passant) special capture
 - [x] Knight
 - [x] Bishop
