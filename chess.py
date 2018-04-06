@@ -10,6 +10,7 @@ from builtins import ValueError, Exception, len, input, chr, str, ord, int, Keyb
 
 from chess.board import create, is_being_checked, can_player_leave_check_state, print_board, opposite_col, \
     filter_self_checking_moves, conduct_move, selected_piece
+from chess.move import MoveType
 
 
 def a1_to_py_convert(pair):
@@ -58,6 +59,25 @@ def request_user_move(message):
     return move
 
 
+def request_promotion_type(piece_legal_move_set):
+    print("Please choose type 'Queen', 'Bishop', 'Knight' or 'Rook'")
+    piece_string = take_input()
+    if len(piece_string) == 0:
+        print("No piece_string given.\n")
+        return False
+
+    # Take the element out of the list
+    piece_string = piece_string[0]
+
+    if piece_string != "Queen" and piece_string != "Bishop" and piece_string != "Knight" and piece_string != "Rook":
+        return False
+
+    for move in piece_legal_move_set:
+        if type(move.promotion_piece).__name__ == piece_string:
+            return move
+    return False
+
+
 def main():
     player_turn = "white"
 
@@ -90,7 +110,7 @@ def main():
             print('Selected: \'' + selected_piece(game_board, coords).type + '\'.', )
             print('Possible moves: ', )
             for move in piece_legal_move_set:
-                print(py_to_a1_convert(move.end_coords), )
+                print(move, ": ", py_to_a1_convert(move.end_coords))
             print()
 
             # Choose end location:
@@ -102,8 +122,11 @@ def main():
                 for move in piece_legal_move_set:
                     if move.end_coords[0] == user_end_coords[0] and move.end_coords[1] == user_end_coords[1]:
                         chosen_move = move
+                if chosen_move.move_type == MoveType.PROMOTION:
+                    # If we chose one a promotion end coordinates, we need to find the exact promotion choice we desire
+                    chosen_move = request_promotion_type(piece_legal_move_set)
                 if not chosen_move:
-                    print('Invalid move')
+                    print('Invalid move\n')
                     continue
 
         game_board = conduct_move(game_board, chosen_move, player_turn)

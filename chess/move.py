@@ -16,14 +16,21 @@ class Move(object):
         self.promotion_piece = False
 
     @classmethod
-    def en_passant(cls, start_coords, end_coords, promote_to):
+    def en_passant(cls, start_coords, end_coords):
+        # TODO: Complete this
         cls.move_type = MoveType.EN_PASSANT
         cls.start_coords = start_coords
         cls.end_coords = end_coords
-        cls.promotion_piece = promote_to
+        cls.promotion_piece = False
+
+    @classmethod
+    def pawn_promotion(cls, start_coords, end_coords, promote_choice):
+        move = cls(MoveType.PROMOTION, start_coords, end_coords)
+        move.promotion_piece = promote_choice
+        return move
 
     def __repr__(self):
-        str_repr = "" + str(self.move_type) + " " + str(self.start_coords) + " " + str(self.end_coords)
+        str_repr = str(self.move_type) + " " + str(self.start_coords) + " " + str(self.end_coords)
         if self.move_type == MoveType.PROMOTION:
             str_repr += " " + str(self.promotion_piece)
         return str_repr

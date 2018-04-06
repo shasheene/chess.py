@@ -28,6 +28,13 @@ class Piece(object):
     def get_attack_set(self, board, piece_location):
         return []
 
+    def __eq__(self, obj):
+        return (self.has_never_moved == obj.has_never_moved) and (self.col == obj.col) \
+               and (self.is_blank_piece == obj.is_blank_piece) and (self.type == obj.type)
+
+    def __str__(self):
+        return type(self).__name__ + " (" + self.col + ")"
+
 
 class BlankPiece(Piece):
     def __init__(self):
@@ -47,7 +54,15 @@ class Pawn(Piece):
         j = piece_location[1]
         # Is space directly forward from us free?
         if not is_off_edge(i, j) and piece_at(board, i, j).is_blank_piece:
-            move_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
+            if i != self.enemy_home_rank:
+                # Normal advance single space
+                move_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
+            else:
+                # If by advancing one space we are at the end of the board, we can promote the pawn
+                move_set.append(Move.pawn_promotion(piece_location, [i, j], Queen(self.col)))
+                move_set.append(Move.pawn_promotion(piece_location, [i, j], Bishop(self.col)))
+                move_set.append(Move.pawn_promotion(piece_location, [i, j], Knight(self.col)))
+                move_set.append(Move.pawn_promotion(piece_location, [i, j], Rook(self.col)))
 
             i = piece_location[0] + self.forward_dir * 2
             j = piece_location[1]

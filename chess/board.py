@@ -105,24 +105,42 @@ def conduct_move(existing_board, candidate_move, player_col):
 
     if selected_piece(new_board, start_coords).col != player_col:
         return False
-    if candidate_move.move_type == MoveType.CASTLING:
+    if candidate_move.move_type == MoveType.NORMAL:
+        move_piece_inplace(new_board, start_coords, end_coords)
+    elif candidate_move.move_type == MoveType.CASTLING:
         if candidate_move.end_coords[1] < King.KING_HOME_COL:
             # Move column a rook to other side of where King will move
             rook = new_board[start_coords[0]][0]
             new_board[start_coords[0]][2] = rook
             new_board[start_coords[0]][0] = BlankPiece()
+            rook.has_never_moved = False
+            move_piece_inplace(new_board, start_coords, end_coords)
         else:
             # Move column h rook to other side of where King will move
             rook = new_board[start_coords[0]][7]
             new_board[start_coords[0]][5] = rook
             new_board[start_coords[0]][7] = BlankPiece()
-        rook.has_never_moved = False
+            rook.has_never_moved = False
+            move_piece_inplace(new_board, start_coords, end_coords)
+    elif candidate_move.move_type == MoveType.PROMOTION:
+        # Advance pawn to final row
+        move_piece_inplace(new_board, start_coords, end_coords)
+        # Then replace it with selected piece in-place
+        new_board[end_coords[0]][end_coords[1]] = candidate_move.promotion_piece
 
-    piece = new_board[start_coords[0]][start_coords[1]]
-    new_board[end_coords[0]][end_coords[1]] = piece
-    piece.has_never_moved = False
-    new_board[start_coords[0]][start_coords[1]] = BlankPiece()
     return new_board
+
+
+def move_piece_inplace(board, start_coords, end_coords):
+    """
+    Moves the piece at start_coords to end_coords, and replaces the first pieces with a blank piece
+
+    Board is modified in-place.
+    """
+    piece = board[start_coords[0]][start_coords[1]]
+    board[end_coords[0]][end_coords[1]] = piece
+    piece.has_never_moved = False
+    board[start_coords[0]][start_coords[1]] = BlankPiece()
 
 
 def create():
