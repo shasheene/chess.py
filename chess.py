@@ -9,7 +9,7 @@ import sys
 from builtins import ValueError, Exception, len, input, chr, str, ord, int, KeyboardInterrupt
 
 from chess.board import create, is_being_checked, can_player_leave_check_state, print_board, opposite_col, \
-    filter_self_checking_moves, conduct_move, selected_piece, is_stalemate
+    filter_self_checking_moves, conduct_move, selected_piece, is_stalemate, is_impossible_to_reach_checkmate
 from chess.move import MoveType
 
 
@@ -144,6 +144,9 @@ def main():
         player_turn = opposite_col(player_turn)
         if is_stalemate(game_board, player_turn):
             print('DRAW (STALEMATE)\n')
+            sys.exit(0)
+        if is_impossible_to_reach_checkmate(game_board):
+            print('DRAW (INSUFFICIENT MATERIALS)\n')
             sys.exit(0)
 
 
