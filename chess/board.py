@@ -1,7 +1,7 @@
 from builtins import range, len, int
 from copy import deepcopy
 
-from chess.move import MoveType, Move
+from chess.move import MoveType
 from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn, BlankPiece
 from chess.utils import selected_piece, opposite_col, piece_at
 
@@ -244,6 +244,39 @@ def is_checkerboard_position_white(location):
     ]
 
     return col[location[0]][location[1]]
+
+
+def update_move_history(board, move_history_list, player_turn):
+    """Maintains threefold repetition list from the beginning of the game."""
+
+    # Throw the attack and movement sets together (note: not maintaining information of which move is which at this
+    # stage)
+    player_opponent_combined_moveset = []
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "white", "moveset"))
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "white", "attackset"))
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "black", "moveset"))
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "black", "attackset"))
+
+    # The turn of the player matters as well as the moveset
+    element = {'players_turn': player_turn, 'moveset': player_opponent_combined_moveset}
+    # Maintain a list with each element containing a list of movesets
+    move_history_list.append(element)
+
+
+def is_threefold_repetition_stalemate(move_history_list):
+    """ See https://en.wikipedia.org/wiki/Threefold_repetition for explanation of the rule.
+
+    :return: True if stalemate, False otherwise
+    """
+
+    for candidate_move in move_history_list:
+        count = 0
+        for move in move_history_list:
+            if candidate_move == move:
+                count += 1
+                if count == 3:
+                    return True
+    return False
 
 
 def create():

@@ -1,4 +1,5 @@
-from chess.board import is_being_checked, can_player_leave_check_state, is_stalemate, is_impossible_to_reach_checkmate
+from chess.board import is_being_checked, can_player_leave_check_state, is_stalemate, is_impossible_to_reach_checkmate, \
+    is_threefold_repetition_stalemate, update_move_history
 from chess.pieces import BlankPiece, Rook, Pawn, King, Queen, Bishop, Knight
 from test.unit_test_fn import assert_false, assert_true
 
@@ -177,6 +178,100 @@ def test_insufficient_material_states():
                 is_impossible_to_reach_checkmate(board))
 
 
+def test_threefold_repetition():
+    move_list = []
+
+    __ = BlankPiece()
+    wk = King("white")
+    bk = King("black")
+
+    #     0   1   2   3   4   5   6   7
+    board0 = [
+        [__, __, __, bk, __, __, __, __],  # 0
+        [__, __, __, __, __, __, __, __],  # 1
+        [__, __, __, __, __, __, __, __],  # 2
+        [__, __, __, __, __, __, __, __],  # 3
+        [__, __, __, __, __, __, __, __],  # 4
+        [__, __, __, __, __, __, __, __],  # 5
+        [__, __, __, __, __, __, __, __],  # 6
+        [__, __, __, __, wk, __, __, __]  # 7
+    ]
+
+    #     0   1   2   3   4   5   6   7
+    board1 = [
+        [__, __, __, __, bk, __, __, __],  # 0
+        [__, __, __, __, __, __, __, __],  # 1
+        [__, __, __, __, __, __, __, __],  # 2
+        [__, __, __, __, __, __, __, __],  # 3
+        [__, __, __, __, __, __, __, __],  # 4
+        [__, __, __, __, __, __, __, __],  # 5
+        [__, __, __, __, __, __, __, __],  # 6
+        [__, __, __, __, wk, __, __, __]  # 7
+    ]
+
+    board2 = [
+        [__, __, __, __, bk, __, __, __],  # 0
+        [__, __, __, __, __, __, __, __],  # 1
+        [__, __, __, __, __, __, __, __],  # 2
+        [__, __, __, __, __, __, __, __],  # 3
+        [__, __, __, __, __, __, __, __],  # 4
+        [__, __, __, __, __, __, __, __],  # 5
+        [__, __, __, __, wk, __, __, __],  # 6
+        [__, __, __, __, __, __, __, __]  # 7
+    ]
+
+    board3 = [
+        [__, __, __, __, __, __, __, __],  # 0
+        [__, __, __, __, bk, __, __, __],  # 1
+        [__, __, __, __, __, __, __, __],  # 2
+        [__, __, __, __, __, __, __, __],  # 3
+        [__, __, __, __, __, __, __, __],  # 4
+        [__, __, __, __, __, __, __, __],  # 5
+        [__, __, __, __, wk, __, __, __],  # 6
+        [__, __, __, __, __, __, __, __]  # 7
+    ]
+
+    board4 = [
+        [__, __, __, __, __, __, __, __],  # 0
+        [__, __, __, __, bk, __, __, __],  # 1
+        [__, __, __, __, __, __, __, __],  # 2
+        [__, __, __, __, __, __, __, __],  # 3
+        [__, __, __, __, __, __, __, __],  # 4
+        [__, __, __, __, __, __, __, __],  # 5
+        [__, __, __, __, __, __, __, __],  # 6
+        [__, __, __, __, wk, __, __, __]  # 7
+    ]
+
+    msg = "Expected to not yet have 3 repetitions"
+
+    # Initial state
+    update_move_history(board0, move_list, "black")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+
+    # Board state repeated once
+    update_move_history(board1, move_list, "white")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    update_move_history(board2, move_list, "black")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    update_move_history(board3, move_list, "white")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    update_move_history(board4, move_list, "black")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    # Board state repeated twice
+    update_move_history(board1, move_list, "white")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    update_move_history(board2, move_list, "black")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    update_move_history(board3, move_list, "white")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    update_move_history(board4, move_list, "black")
+    assert_false(msg, is_threefold_repetition_stalemate(move_list))
+    # Board state repeated three times
+    update_move_history(board1, move_list, "white")
+    assert_true("Expected threefold repetition stalemate", is_threefold_repetition_stalemate(move_list))
+
+
 test_check()
 test_stalemate()
 test_insufficient_material_states()
+test_threefold_repetition()

@@ -30,8 +30,8 @@ Core gameplay is complete, but some chess mechanics are not yet implemented:
 - Draw detection
     - [x] [Stalemate](https://en.wikipedia.org/wiki/Stalemate)
     - [x] Impossibility of checkmate ("insufficient mating material rule")
+    - [x] [3-fold repetition](https://en.wikipedia.org/wiki/Threefold_repetition)
     - [] [50-move rule](https://en.wikipedia.org/wiki/Fifty-move_rule)
-    - [] [3-fold repetition](https://en.wikipedia.org/wiki/Threefold_repetition)
 - [] Graphical user interface with move selection through mouse clicks (and highlighting legal moves of selected piece)
 - [] Computer player with AI communicating to separate server using JSON messages
 

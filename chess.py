@@ -9,7 +9,8 @@ import sys
 from builtins import ValueError, Exception, len, input, chr, str, ord, int, KeyboardInterrupt
 
 from chess.board import create, is_being_checked, can_player_leave_check_state, print_board, opposite_col, \
-    filter_self_checking_moves, conduct_move, selected_piece, is_stalemate, is_impossible_to_reach_checkmate
+    filter_self_checking_moves, conduct_move, selected_piece, is_stalemate, is_impossible_to_reach_checkmate, \
+    is_threefold_repetition_stalemate, update_move_history
 from chess.move import MoveType
 
 
@@ -82,10 +83,12 @@ def main():
     player_turn = "white"
 
     game_board = create()
+    move_history_list = []
 
     while 1:
         print_board(game_board)
         print(player_turn + 's turn. Select piece')
+
 
         valid_selection = False
         while not valid_selection:
@@ -129,6 +132,7 @@ def main():
                     print('Invalid move\n')
                     continue
 
+        update_move_history(game_board, move_history_list, player_turn)
         game_board = conduct_move(game_board, chosen_move, player_turn)
         if not game_board:
             print("Illegal move not caught by game logic")
@@ -147,6 +151,9 @@ def main():
             sys.exit(0)
         if is_impossible_to_reach_checkmate(game_board):
             print('DRAW (INSUFFICIENT MATERIALS)\n')
+            sys.exit(0)
+        if is_threefold_repetition_stalemate(move_history_list):
+            print('DRAW (THREEFOLD REPETITION)\n')
             sys.exit(0)
 
 
