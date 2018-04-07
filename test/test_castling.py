@@ -57,7 +57,7 @@ def test_castling_movesets():
 def test_conducting_col_a_castle_move():
     board = get_castling_board()
     col_a_castle = Move(MoveType.CASTLING, [7, 4], [7, 1])
-    board = conduct_move(board, col_a_castle, "white")
+    board, move_history_element = conduct_move(board, col_a_castle, "white")
 
     _ = BlankPiece()
     expected_row = [_, King("white"), Rook("white"), _, _, _, _, Rook("white")]
@@ -68,7 +68,7 @@ def test_conducting_col_a_castle_move():
 def test_conducting_col_h_castle_move():
     board = get_castling_board()
     col_h_castle = Move(MoveType.CASTLING, [7, 4], [7, 6])
-    board = conduct_move(board, col_h_castle, "white")
+    board, move_history_element = conduct_move(board, col_h_castle, "white")
 
     _ = BlankPiece()
     expected_row = [Rook("white"), _, _, _, _, Rook("white"), King("white"), _]

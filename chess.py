@@ -133,7 +133,7 @@ def main():
                     continue
 
         update_move_history(game_board, move_history_list, player_turn)
-        game_board = conduct_move(game_board, chosen_move, player_turn)
+        game_board, move_history_element = conduct_move(game_board, chosen_move, player_turn)
         if not game_board:
             print("Illegal move not caught by game logic")
 

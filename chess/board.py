@@ -1,6 +1,7 @@
 from builtins import range, len, int
 from copy import deepcopy
 
+from chess.history import MoveHistoryElement
 from chess.move import MoveType
 from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn, BlankPiece
 from chess.utils import selected_piece, opposite_col, piece_at
@@ -26,7 +27,7 @@ def filter_self_checking_moves(board, list_of_moves, player_turn):
     """ Returns new list without the moves that causes own player to become checked"""
     piece_legal_move_set = []
     for candidate_move in list_of_moves:
-        new_board = conduct_move(board, candidate_move, player_turn)
+        new_board, move_history_element = conduct_move(board, candidate_move, player_turn)
         if not new_board:
             continue
         # if it doesn't cause self to become checked, move is valid!
@@ -106,7 +107,7 @@ def conduct_move(existing_board, candidate_move, player_col):
     if selected_piece(new_board, start_coords).col != player_col:
         return False
     if candidate_move.move_type == MoveType.NORMAL:
-        move_piece_inplace(new_board, start_coords, end_coords)
+        move_history_element = _move_piece_inplace(new_board, candidate_move)
     elif candidate_move.move_type == MoveType.CASTLING:
         if candidate_move.end_coords[1] < King.KING_HOME_COL:
             # Move column a rook to other side of where King will move
@@ -114,33 +115,38 @@ def conduct_move(existing_board, candidate_move, player_col):
             new_board[start_coords[0]][2] = rook
             new_board[start_coords[0]][0] = BlankPiece()
             rook.has_never_moved = False
-            move_piece_inplace(new_board, start_coords, end_coords)
+            move_history_element = _move_piece_inplace(new_board, candidate_move)
         else:
             # Move column h rook to other side of where King will move
             rook = new_board[start_coords[0]][7]
             new_board[start_coords[0]][5] = rook
             new_board[start_coords[0]][7] = BlankPiece()
             rook.has_never_moved = False
-            move_piece_inplace(new_board, start_coords, end_coords)
+            move_history_element = _move_piece_inplace(new_board, candidate_move)
     elif candidate_move.move_type == MoveType.PROMOTION:
         # Advance pawn to final row
-        move_piece_inplace(new_board, start_coords, end_coords)
+        move_history_element = _move_piece_inplace(new_board, candidate_move)
         # Then replace it with selected piece in-place
         new_board[end_coords[0]][end_coords[1]] = candidate_move.promotion_piece
 
-    return new_board
+    return new_board, move_history_element
 
 
-def move_piece_inplace(board, start_coords, end_coords):
+def _move_piece_inplace(board, move):
     """
-    Moves the piece at start_coords to end_coords, and replaces the first pieces with a blank piece
+    Moves the piece at move.start_coords to move.end_coords, and replaces the first pieces with a blank piece
 
     Board is modified in-place.
     """
+    start_coords = move.start_coords
+    end_coords = move.end_coords
+
     piece = board[start_coords[0]][start_coords[1]]
+    captured_piece = board[end_coords[0]][end_coords[1]]
     board[end_coords[0]][end_coords[1]] = piece
     piece.has_never_moved = False
     board[start_coords[0]][start_coords[1]] = BlankPiece()
+    return MoveHistoryElement(move, piece, captured_piece)
 
 
 def is_stalemate(board, player_turn):
