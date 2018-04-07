@@ -143,6 +143,14 @@ def move_piece_inplace(board, start_coords, end_coords):
     board[start_coords[0]][start_coords[1]] = BlankPiece()
 
 
+def is_stalemate(board, player_turn):
+        player_total_move_set = get_team_move_set(board, player_turn, "attackset")
+        player_total_move_set += get_team_move_set(board, player_turn, "moveset")
+        player_legal_move_set = filter_self_checking_moves(board, player_total_move_set, player_turn)
+
+        return len(player_legal_move_set) == 0
+
+
 def create():
     b = [[Rook("black"), Knight("black"), Bishop("black"), Queen("black"), King("black"), Bishop("black"),
           Knight("black"), Rook("black")],

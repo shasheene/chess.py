@@ -1,4 +1,4 @@
-from chess.board import is_being_checked, can_player_leave_check_state
+from chess.board import is_being_checked, can_player_leave_check_state, is_stalemate
 from chess.move import MoveType
 from chess.pieces import BlankPiece, Rook, Pawn, King, Bishop, Queen, Knight
 from test.unit_test_fn import assert_length, assert_contains, assert_false, assert_true, create_list_of_moves
@@ -200,11 +200,36 @@ def test_check():
     assert_false("Should be checkmate", can_player_leave_check_state(board, "white"))
 
 
+def test_stalemate():
+    # Opposite col test omitted as player color doesn't effect this test.
+
+    __ = BlankPiece()
+    wk= King("white")
+
+    r = Rook("black")
+    q = Queen("black")
+    bk = King("black")
+
+    #             0   1   2   3   4   5   6   7
+    board = [
+                [__, __, __, __, __, __, __, __],  # 0
+                [__, __, __, __, __, __, __, __],  # 1
+                [__, __, __, __, __, __, __, __],  # 2
+                [__,  r, __, __, __, __, __, __],  # 3
+                [__, __, __, __, __, __, __, bk],  # 4
+                [__, __, __, __, __, __, __, __],  # 5
+                [__, __, __, __,  q, __, __, __],  # 6
+                [wk, __, __, __, __, __, __, __]   # 7
+            ]
+    assert_false("White should NOT be a check state", is_being_checked(board, "white"))
+    assert_true("White should be in stalemate", is_stalemate(board, "white"))
+    assert_false("Black should NOT be in stalemate state", is_stalemate(board, "black"))
+
+
 colors = [{'player': "white", 'opponent': "black"}, {'player': "black", 'opponent': "white"}]
 for color in colors:
     test_sliding_pieces(color['player'], color['opponent'])
     test_teleporting_pieces(color['player'], color['opponent'])
 
-test_white_pawn_movements()
-test_black_pawn_movements()
 test_check()
+test_stalemate()

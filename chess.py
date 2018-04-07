@@ -9,7 +9,7 @@ import sys
 from builtins import ValueError, Exception, len, input, chr, str, ord, int, KeyboardInterrupt
 
 from chess.board import create, is_being_checked, can_player_leave_check_state, print_board, opposite_col, \
-    filter_self_checking_moves, conduct_move, selected_piece
+    filter_self_checking_moves, conduct_move, selected_piece, is_stalemate
 from chess.move import MoveType
 
 
@@ -142,6 +142,9 @@ def main():
                 sys.exit(0)
 
         player_turn = opposite_col(player_turn)
+        if is_stalemate(game_board, player_turn):
+            print('DRAW (STALEMATE)\n')
+            sys.exit(0)
 
 
 if __name__ == "__main__":
