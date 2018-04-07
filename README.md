@@ -26,7 +26,12 @@ Core gameplay is complete, but some chess mechanics are not yet implemented:
 - [x] Rook
 - [x] Queen
 - [x] Main game logic: Turn-based basic playable game mechanics
-- [x] Game ending logic: Check/checkmate detection
+- [x] Check/checkmate detection
+- Draw detection
+    - [] [Stalemate](https://en.wikipedia.org/wiki/Stalemate)
+    - [] [50-move rule](https://en.wikipedia.org/wiki/Fifty-move_rule)
+    - [] [3-fold repetition](https://en.wikipedia.org/wiki/Threefold_repetition)
+    - [] Impossibility of checkmate ("insufficient mating material rule")
 - [] Graphical user interface with move selection through mouse clicks (and highlighting legal moves of selected piece)
 - [] Computer player with AI communicating to separate server using JSON messages
 
