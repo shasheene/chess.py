@@ -7,10 +7,11 @@ Text-based chess game.
 
 import sys
 from builtins import ValueError, Exception, len, input, chr, str, ord, int, KeyboardInterrupt
+from collections import deque
 
 from chess.board import create, is_being_checked, can_player_leave_check_state, print_board, opposite_col, \
     filter_self_checking_moves, conduct_move, selected_piece, is_stalemate, is_impossible_to_reach_checkmate, \
-    is_threefold_repetition_stalemate, update_move_history
+    is_threefold_repetition_stalemate, update_move_history, is_fifty_move_rule_draw
 from chess.move import MoveType
 
 
@@ -83,12 +84,17 @@ def main():
     player_turn = "white"
 
     game_board = create()
-    move_history_list = []
+    # Maintain complete history of all potential game moves (for the three-fold repetition rule)
+    potential_moveset_history = []
+    # The Wikipedia page for the 50-move rule suggests that for the purposes the rule, a move is a player's turn
+    # followed by opponents turn.
+    history_length = 50 * 2
+    # Maintain complete history of actually completed moves (for the 50-move rule, and en passant)
+    conducted_move_history = deque([], history_length)
 
     while 1:
         print_board(game_board)
         print(player_turn + 's turn. Select piece')
-
 
         valid_selection = False
         while not valid_selection:
@@ -132,8 +138,10 @@ def main():
                     print('Invalid move\n')
                     continue
 
-        update_move_history(game_board, move_history_list, player_turn)
+        update_move_history(game_board, potential_moveset_history, player_turn)
         game_board, move_history_element = conduct_move(game_board, chosen_move, player_turn)
+        conducted_move_history.append(move_history_element)
+
         if not game_board:
             print("Illegal move not caught by game logic")
 
@@ -152,8 +160,11 @@ def main():
         if is_impossible_to_reach_checkmate(game_board):
             print('DRAW (INSUFFICIENT MATERIALS)\n')
             sys.exit(0)
-        if is_threefold_repetition_stalemate(move_history_list):
+        if is_threefold_repetition_stalemate(potential_moveset_history):
             print('DRAW (THREEFOLD REPETITION)\n')
+            sys.exit(0)
+        if is_fifty_move_rule_draw(conducted_move_history):
+            print('DRAW (FIFTY-MOVE RULE)\n')
             sys.exit(0)
 
 

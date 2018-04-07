@@ -285,6 +285,25 @@ def is_threefold_repetition_stalemate(move_history_list):
     return False
 
 
+def is_fifty_move_rule_draw(conducted_move_history):
+    """ See https://en.wikipedia.org/wiki/Fifty-move_rule for explanation of the rule
+
+    "Player can claim draw if no capture has been made, and no pawn has been made "player can claim a draw if no
+    capture has been made and no pawn has been moved in the last fifty moves"
+
+    :param conducted_move_history: Deque of history, where its maxlen is the region of moves to considers
+    :return: True if fifty move rule is valid, false otherwise
+    """
+    if len(conducted_move_history) != conducted_move_history.maxlen:
+        return False
+    for element in conducted_move_history:
+        if element.capture_piece.type != '_':
+            return False
+        if type(element.piece).__name__ == "Pawn":
+            return False
+    return True
+
+
 def create():
     b = [[Rook("black"), Knight("black"), Bishop("black"), Queen("black"), King("black"), Bishop("black"),
           Knight("black"), Rook("black")],
