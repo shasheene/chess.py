@@ -32,3 +32,11 @@ def create_list_of_moves(move_type, start_coord, end_coord_list):
     for end_coord in end_coord_list:
         to_return.append(Move(move_type, start_coord, end_coord))
     return to_return
+
+
+def assert_row_contain_same_type_elements(expected_row, actual_row):
+    assert_true("Unexpected home row length", len(actual_row) == len(expected_row))
+    for col in range(0, 8):
+        assert_true("Rows types different."
+                    + "\nExpected=" + str(expected_row)
+                    + "\nActual  =" + str(actual_row), expected_row[col].type == actual_row[col].type)

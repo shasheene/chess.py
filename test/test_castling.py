@@ -1,15 +1,8 @@
 from chess.move import MoveType, Move
 from chess.pieces import BlankPiece, Pawn, King, Rook, Knight
-from test.unit_test_fn import assert_length, assert_contains, create_list_of_moves, assert_true
+from test.unit_test_fn import assert_length, assert_contains, create_list_of_moves, assert_true, \
+    assert_row_contain_same_type_elements
 from chess.board import conduct_move
-
-
-def assert_castling_rows_contain_same_type_elements(expected_row, actual_row):
-    assert_true("Unexpected home row length", len(actual_row) == len(expected_row))
-    for col in range(0, 8):
-        assert_true("Rows types different."
-                    + "\nExpected=" + str(expected_row)
-                    + "\nActual  =" + str(actual_row), expected_row[col].type == actual_row[col].type)
 
 
 def get_castling_board():
@@ -62,7 +55,7 @@ def test_conducting_col_a_castle_move():
     _ = BlankPiece()
     expected_row = [_, King("white"), Rook("white"), _, _, _, _, Rook("white")]
     actual_row = board[7]
-    assert_castling_rows_contain_same_type_elements(expected_row, actual_row)
+    assert_row_contain_same_type_elements(expected_row, actual_row)
 
 
 def test_conducting_col_h_castle_move():
@@ -73,7 +66,7 @@ def test_conducting_col_h_castle_move():
     _ = BlankPiece()
     expected_row = [Rook("white"), _, _, _, _, Rook("white"), King("white"), _]
     actual_row = board[7]
-    assert_castling_rows_contain_same_type_elements(expected_row, actual_row)
+    assert_row_contain_same_type_elements(expected_row, actual_row)
 
 
 test_conducting_col_a_castle_move()
