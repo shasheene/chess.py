@@ -17,11 +17,8 @@ class Move(object):
 
     @classmethod
     def en_passant(cls, start_coords, end_coords):
-        # TODO: Complete this
-        cls.move_type = MoveType.EN_PASSANT
-        cls.start_coords = start_coords
-        cls.end_coords = end_coords
-        cls.promotion_piece = False
+        move = cls(MoveType.EN_PASSANT, start_coords, end_coords)
+        return move
 
     @classmethod
     def pawn_promotion(cls, start_coords, end_coords, promote_choice):

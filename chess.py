@@ -29,7 +29,7 @@ def a1_to_py_convert(pair):
     col = ord(pair[0].lower()) - 97  # In ascii, 'a'=97
     # print "Letter is " + str(pair[0]) + " -> " + str(col)
     row = 8 - int(pair[1])  # Chess counts from 1, not 0. (the row component of coords 'e2' to is 1, not 2.)
-    return row, col
+    return [row, col]
 
 
 def py_to_a1_convert(pair):
@@ -108,9 +108,12 @@ def main():
                 print('...Error selected opponents\' piece. Choose another piece\n')
                 continue
 
-            piece_total_move_set = selected_piece(game_board, coords).get_move_set(game_board, coords)
-            piece_total_move_set += selected_piece(game_board, coords).get_attack_set(game_board, coords)
-            piece_legal_move_set = filter_self_checking_moves(game_board, piece_total_move_set, player_turn)
+            piece_total_move_set = selected_piece(game_board, coords).get_move_set(game_board, coords,
+                                                                                   conducted_move_history)
+            piece_total_move_set += selected_piece(game_board, coords).get_attack_set(game_board, coords,
+                                                                                      conducted_move_history)
+            piece_legal_move_set = filter_self_checking_moves(game_board, piece_total_move_set, player_turn,
+                                                              conducted_move_history)
             if len(piece_legal_move_set) == 0:
                 print('...Error no legal moves available. Choose another piece\n')
                 continue
@@ -140,7 +143,7 @@ def main():
                     print('Invalid move\n')
                     continue
 
-        update_move_history(game_board, potential_moveset_history, player_turn)
+        update_move_history(game_board, potential_moveset_history, player_turn, conducted_move_history)
         game_board, move_history_element = conduct_move(game_board, chosen_move, player_turn)
         conducted_move_history.append(move_history_element)
 
@@ -148,7 +151,7 @@ def main():
             print("Illegal move not caught by game logic")
 
         if is_being_checked(game_board, opposite_col(player_turn)):
-            if can_player_leave_check_state(game_board, opposite_col(player_turn)):
+            if can_player_leave_check_state(game_board, opposite_col(player_turn), conducted_move_history):
                 print('CHECK\n')
             else:
                 print_board(game_board)
@@ -156,7 +159,7 @@ def main():
                 sys.exit(0)
 
         player_turn = opposite_col(player_turn)
-        if is_stalemate(game_board, player_turn):
+        if is_stalemate(game_board, player_turn, conducted_move_history):
             print('DRAW (STALEMATE)\n')
             sys.exit(0)
         if is_impossible_to_reach_checkmate(game_board):

@@ -1,5 +1,5 @@
 from chess.move import Move, MoveType
-from chess.utils import piece_at, selected_piece, is_off_edge, opposite_col
+from chess.utils import piece_at, selected_piece, is_off_edge, opposite_col, is_off_edge_pos, piece_at_pos
 
 
 class Piece(object):
@@ -21,11 +21,11 @@ class Piece(object):
             self.enemy_home_rank = 7
             self.unicode_symbol = chr(int(white_piece_unicode_codepoint, 16) + 6).encode('utf-8')
 
-    def get_move_set(self, board, piece_location):
+    def get_move_set(self, board, piece_location, conducted_move_history):
         return []
 
     # Useful method for checkmate detection
-    def get_attack_set(self, board, piece_location):
+    def get_attack_set(self, board, piece_location, conducted_move_history):
         return []
 
     def __eq__(self, obj):
@@ -48,7 +48,7 @@ class Pawn(Piece):
         # Pawn's relative column offset to get north east and north west (from white's perspective)
         self.column_attack_offset = [-1, 1]
 
-    def get_move_set(self, board, piece_location):
+    def get_move_set(self, board, piece_location, conducted_move_history):
         move_set = []
         i = piece_location[0] + self.forward_dir
         j = piece_location[1]
@@ -72,15 +72,43 @@ class Pawn(Piece):
                 move_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
         return move_set
 
-    def get_attack_set(self, board, piece_location):
+    def get_attack_set(self, board, piece_location, conducted_move_history):
         attack_set = []
 
         for col_offset in self.column_attack_offset:
             i = piece_location[0] + self.forward_dir
             j = piece_location[1] + col_offset
-            if not is_off_edge(i, j) and (piece_at(board, i, j).col == self.enemy_col):
+            if not is_off_edge(i, j) and piece_at(board, i, j).col == self.enemy_col:
                 attack_set.append(Move(MoveType.NORMAL, piece_location, [i, j]))
+            en_passant = self._get_enpassant_move(board, piece_location, [i, j], conducted_move_history)
+            if en_passant:
+                    # En passant moves added to attack_set. Doesn't make a difference though given the move will never
+                    # contain an enemy king
+                    attack_set.append(en_passant)
         return attack_set
+
+    def _get_enpassant_move(self, board, start_pos, end_pos, conducted_move_history):
+        """ Helper to create en passant move, if one exists.
+
+        :param board: game board
+        :param start_pos: current location of this pawn
+        :param end_pos: proposed end location of pawn
+        :param conducted_move_history: Move history
+        :return: En passant move if one exists. False otherwise
+        """
+        if not is_off_edge_pos(end_pos) and piece_at_pos(board, end_pos).type == "_"\
+                and len(conducted_move_history) != 0:
+            # Target en passant location is a single row advanced towards us
+            en_passant_pos = [end_pos[0] - self.forward_dir, end_pos[1]]
+            piece = piece_at_pos(board, en_passant_pos)
+            if type(piece).__name__ == "Pawn" and piece.col == self.enemy_col:
+                en_passant_pawn_last_move = conducted_move_history[-1].move
+                # Confirm that the enemy pawn did a 2-square advance last turn
+                expected_enemy_pawn_start_pos = [self.enemy_home_rank - self.forward_dir,  en_passant_pos[1]]
+                if en_passant_pawn_last_move.start_coords == expected_enemy_pawn_start_pos \
+                        and en_passant_pawn_last_move.end_coords == en_passant_pos:
+                            return Move.en_passant(start_pos, end_pos)
+        return False
 
     def is_on_pawn_home_row(self, piece_location):
         current_col_pawn_staring_rank = self.home_rank + self.forward_dir
@@ -92,7 +120,7 @@ class SlidingPiece(Piece):
         super(SlidingPiece, self).__init__(col, white_piece_unicode_codepoint, ascii_char)
         self.vector_dir = list_of_unit_moves
 
-    def get_attack_set(self, board, piece_location):
+    def get_attack_set(self, board, piece_location, conducted_move_history):
         attack_set = []
         for vector in self.vector_dir:
             i = piece_location[0] + vector[0]
@@ -114,7 +142,7 @@ class TeleportingPiece(Piece):
         super(TeleportingPiece, self).__init__(col, white_piece_unicode_codepoint, ascii_char)
         self.teleport_offsets = list_of_teleport_offsets
 
-    def get_attack_set(self, board, piece_location):
+    def get_attack_set(self, board, piece_location, conducted_move_history):
         attack_set = []
         for offset in self.teleport_offsets:
             i = piece_location[0] + offset[0]
@@ -149,7 +177,7 @@ class King(TeleportingPiece):
         self.teleport_offsets = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, +1], [+1, -1], [1, 1]]
         super(King, self).__init__(col, self.teleport_offsets, '2654', "k")
 
-    def get_move_set(self, board, piece_location):
+    def get_move_set(self, board, piece_location, conducted_move_history):
         return self.get_castling_set(board, piece_location)
 
     def get_castling_set(self, board, piece_location):

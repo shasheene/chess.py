@@ -7,7 +7,7 @@ from chess.pieces import Knight, Rook, Bishop, King, Queen, Pawn, BlankPiece
 from chess.utils import selected_piece, opposite_col, piece_at
 
 
-def can_player_leave_check_state(board, player_turn):
+def can_player_leave_check_state(board, player_turn, conducted_move_history):
     legal_move_set = []
     row = 0
     for r in board:
@@ -15,15 +15,18 @@ def can_player_leave_check_state(board, player_turn):
         for piece in r:
             if piece.col == player_turn:
                 piece_coords = [row, column]
-                piece_total_move_set = selected_piece(board, piece_coords).get_move_set(board, piece_coords)
-                piece_total_move_set += selected_piece(board, piece_coords).get_attack_set(board, piece_coords)
-                legal_move_set += filter_self_checking_moves(board, piece_total_move_set, player_turn)
+                piece_total_move_set = selected_piece(board, piece_coords).get_move_set(board, piece_coords,
+                                                                                        conducted_move_history)
+                piece_total_move_set += selected_piece(board, piece_coords).get_attack_set(board, piece_coords,
+                                                                                           conducted_move_history)
+                legal_move_set += filter_self_checking_moves(board, piece_total_move_set, player_turn,
+                                                             conducted_move_history)
             column = (column + 1)
         row = row + 1
     return len(legal_move_set) != 0
 
 
-def filter_self_checking_moves(board, list_of_moves, player_turn):
+def filter_self_checking_moves(board, list_of_moves, player_turn, conducted_move_history):
     """ Returns new list without the moves that causes own player to become checked"""
     piece_legal_move_set = []
     for candidate_move in list_of_moves:
@@ -63,7 +66,7 @@ def find_king(board, colour):
         row = row + 1
 
 
-def get_team_move_set(board, col, option):
+def get_team_move_set(board, col, option, conducted_move_history):
     team_move_set = []
     row = 0
     for r in board:
@@ -72,9 +75,11 @@ def get_team_move_set(board, col, option):
             if piece.col == col:  # eg. what's white attack set?
                 piece_loc = [row, column]
                 if option == "moveset":
-                    team_move_set += piece_at(board, piece_loc[0], piece_loc[1]).get_move_set(board, piece_loc)
+                    team_move_set += piece_at(board, piece_loc[0], piece_loc[1]).get_move_set(board, piece_loc,
+                                                                                              conducted_move_history)
                 else:
-                    team_move_set += piece_at(board, piece_loc[0], piece_loc[1]).get_attack_set(board, piece_loc)
+                    team_move_set += piece_at(board, piece_loc[0], piece_loc[1]).get_attack_set(board, piece_loc,
+                                                                                                conducted_move_history)
             column = (column + 1)
         row = row + 1
     return team_move_set
@@ -82,7 +87,8 @@ def get_team_move_set(board, col, option):
 
 def is_being_checked(board, col):
     king_loc = find_king(board, col)
-    team_attack_set = get_team_move_set(board, opposite_col(col), "attackset")
+    # No need to provide conducted_move_history as only used by en passant (which can only capture pawns)
+    team_attack_set = get_team_move_set(board, opposite_col(col), "attackset", [])
 
     for move in team_attack_set:
         if move.end_coords[0] == king_loc[0] and move.end_coords[1] == king_loc[1]:
@@ -104,7 +110,8 @@ def conduct_move(existing_board, candidate_move, player_col):
     start_coords = candidate_move.start_coords
     end_coords = candidate_move.end_coords
 
-    if selected_piece(new_board, start_coords).col != player_col:
+    piece = selected_piece(new_board, start_coords)
+    if piece.col != player_col:
         return False
     if candidate_move.move_type == MoveType.NORMAL:
         move_history_element = _move_piece_inplace(new_board, candidate_move)
@@ -128,6 +135,14 @@ def conduct_move(existing_board, candidate_move, player_col):
         move_history_element = _move_piece_inplace(new_board, candidate_move)
         # Then replace it with selected piece in-place
         new_board[end_coords[0]][end_coords[1]] = candidate_move.promotion_piece
+    elif candidate_move.move_type == MoveType.EN_PASSANT:
+        # Move pawn to where you'd expect it
+        move_history_element = _move_piece_inplace(new_board, candidate_move)
+        # Remove the opponents' pawn via enpassant
+        en_passant_pawn = new_board[end_coords[0] - piece.forward_dir][end_coords[1]]
+
+        new_board[end_coords[0] - piece.forward_dir][end_coords[1]] = BlankPiece()
+        move_history_element.capture_piece = en_passant_pawn
 
     return new_board, move_history_element
 
@@ -149,10 +164,10 @@ def _move_piece_inplace(board, move):
     return MoveHistoryElement(move, piece, captured_piece)
 
 
-def is_stalemate(board, player_turn):
-        player_total_move_set = get_team_move_set(board, player_turn, "attackset")
-        player_total_move_set += get_team_move_set(board, player_turn, "moveset")
-        player_legal_move_set = filter_self_checking_moves(board, player_total_move_set, player_turn)
+def is_stalemate(board, player_turn, conducted_move_history):
+        player_total_move_set = get_team_move_set(board, player_turn, "attackset", conducted_move_history)
+        player_total_move_set += get_team_move_set(board, player_turn, "moveset", conducted_move_history)
+        player_legal_move_set = filter_self_checking_moves(board, player_total_move_set, player_turn, conducted_move_history)
 
         return len(player_legal_move_set) == 0
 
@@ -252,16 +267,16 @@ def is_checkerboard_position_white(location):
     return col[location[0]][location[1]]
 
 
-def update_move_history(board, move_history_list, player_turn):
+def update_move_history(board, move_history_list, player_turn, conducted_move_history):
     """Maintains threefold repetition list from the beginning of the game."""
 
     # Throw the attack and movement sets together (note: not maintaining information of which move is which at this
     # stage)
     player_opponent_combined_moveset = []
-    player_opponent_combined_moveset.extend(get_team_move_set(board, "white", "moveset"))
-    player_opponent_combined_moveset.extend(get_team_move_set(board, "white", "attackset"))
-    player_opponent_combined_moveset.extend(get_team_move_set(board, "black", "moveset"))
-    player_opponent_combined_moveset.extend(get_team_move_set(board, "black", "attackset"))
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "white", "moveset", conducted_move_history))
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "white", "attackset", conducted_move_history))
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "black", "moveset", conducted_move_history))
+    player_opponent_combined_moveset.extend(get_team_move_set(board, "black", "attackset", conducted_move_history))
 
     # The turn of the player matters as well as the moveset
     element = {'players_turn': player_turn, 'moveset': player_opponent_combined_moveset}

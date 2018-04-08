@@ -1,5 +1,5 @@
 #### chess.py
-chess.py is small, text-based chess game
+chess.py is small, text-based chess game implementing all known rules of chess (including the oft-forgotten "[en passant](https://en.wikipedia.org/wiki/En_passant)" special capture rule :-) 
 
 #### History
 
@@ -15,10 +15,10 @@ In the future I will add a graphical user interface (likely using the 'pygame' l
 (The game is currently completely terminal/command-line based. At the moment, the player selects pieces by typing the coordinates (eg. 'e2' followed by 'e4' to play the famous "[King's Pawn](https://en.wikipedia.org/wiki/King%27s_Pawn_Game)" opening move).)
 
 #### Features
-Core gameplay is complete, but some chess mechanics are not yet implemented:
+Core gameplay is complete, with all known chess mechanics implemented:
 - [x] Pawn
   - [x] Promotion
-  - [] [En passant](https://en.wikipedia.org/wiki/En_passant) special capture
+  - [x] [En passant](https://en.wikipedia.org/wiki/En_passant) special capture
 - [x] Knight
 - [x] Bishop
 - [x] King

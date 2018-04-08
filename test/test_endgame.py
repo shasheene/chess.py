@@ -46,7 +46,7 @@ def test_check():
         [_, _, _, _, _, _, r, _],  # 6
         [_, _, k, _, _, _, _, q]  # 7
     ]
-    assert_false("Should be checkmate", can_player_leave_check_state(board, "white"))
+    assert_false("Should be checkmate", can_player_leave_check_state(board, "white", []))
 
 
 def test_stalemate():
@@ -71,8 +71,8 @@ def test_stalemate():
         [wk, __, __, __, __, __, __, __]  # 7
     ]
     assert_false("White should NOT be a check state", is_being_checked(board, "white"))
-    assert_true("White should be in stalemate", is_stalemate(board, "white"))
-    assert_false("Black should NOT be in stalemate state", is_stalemate(board, "black"))
+    assert_true("White should be in stalemate", is_stalemate(board, "white", []))
+    assert_false("Black should NOT be in stalemate state", is_stalemate(board, "black", []))
 
 
 def test_insufficient_material_states():
@@ -183,6 +183,8 @@ def test_insufficient_material_states():
 
 def test_threefold_repetition():
     move_list = []
+    # Not maintaining conducted_move_history for brevity
+    conducted_move_history = []
 
     __ = BlankPiece()
     wk = King("white")
@@ -248,29 +250,29 @@ def test_threefold_repetition():
     msg = "Expected to not yet have 3 repetitions"
 
     # Initial state
-    update_move_history(board0, move_list, "black")
+    update_move_history(board0, move_list, "black", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
 
     # Board state repeated once
-    update_move_history(board1, move_list, "white")
+    update_move_history(board1, move_list, "white", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
-    update_move_history(board2, move_list, "black")
+    update_move_history(board2, move_list, "black", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
-    update_move_history(board3, move_list, "white")
+    update_move_history(board3, move_list, "white", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
-    update_move_history(board4, move_list, "black")
+    update_move_history(board4, move_list, "black", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
     # Board state repeated twice
-    update_move_history(board1, move_list, "white")
+    update_move_history(board1, move_list, "white", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
-    update_move_history(board2, move_list, "black")
+    update_move_history(board2, move_list, "black", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
-    update_move_history(board3, move_list, "white")
+    update_move_history(board3, move_list, "white", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
-    update_move_history(board4, move_list, "black")
+    update_move_history(board4, move_list, "black", conducted_move_history)
     assert_false(msg, is_threefold_repetition_stalemate(move_list))
     # Board state repeated three times
-    update_move_history(board1, move_list, "white")
+    update_move_history(board1, move_list, "white", conducted_move_history)
     assert_true("Expected threefold repetition stalemate", is_threefold_repetition_stalemate(move_list))
 
 

@@ -28,8 +28,8 @@ def test_sliding_pieces(player_col, opponent_col):
             ]
 
     # Top-left rook
-    assert_length(board[0][0].get_move_set(board, [0, 0]), 0)
-    assert_contains(board[0][0].get_attack_set(board, [0, 0]),
+    assert_length(board[0][0].get_move_set(board, [0, 0], []), 0)
+    assert_contains(board[0][0].get_attack_set(board, [0, 0], []),
                     create_list_of_moves(MoveType.NORMAL, [0, 0],
                                          [   # Down
                                       [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0],
@@ -38,8 +38,8 @@ def test_sliding_pieces(player_col, opponent_col):
                                   ]))
 
     # Second rook
-    assert_length(board[1][6].get_move_set(board, [1, 6]), 0)
-    assert_contains(board[1][6].get_attack_set(board, [1, 6]),
+    assert_length(board[1][6].get_move_set(board, [1, 6], []), 0)
+    assert_contains(board[1][6].get_attack_set(board, [1, 6], []),
                     create_list_of_moves(MoveType.NORMAL, [1, 6],
                                          [   # Up
                                       [0, 6],
@@ -50,8 +50,8 @@ def test_sliding_pieces(player_col, opponent_col):
                                   ]))
 
     # Bishop
-    assert_length(board[5][3].get_move_set(board, [5, 3]), 0)
-    assert_contains(board[5][3].get_attack_set(board, [5, 3]),
+    assert_length(board[5][3].get_move_set(board, [5, 3], []), 0)
+    assert_contains(board[5][3].get_attack_set(board, [5, 3], []),
                     create_list_of_moves(MoveType.NORMAL, [5, 3],
                                          [   # North-west
                                       [4, 2], [3, 1], [2, 0],
@@ -64,8 +64,8 @@ def test_sliding_pieces(player_col, opponent_col):
                                   ]))
 
     # Queen
-    assert_length(board[2][2].get_move_set(board, [2, 2]), 0)
-    assert_contains(board[2][2].get_attack_set(board, [2, 2]),
+    assert_length(board[2][2].get_move_set(board, [2, 2], []), 0)
+    assert_contains(board[2][2].get_attack_set(board, [2, 2], []),
                     create_list_of_moves(MoveType.NORMAL, [2, 2],
                                          [   # Down
                                       [3, 2], [4, 2], [5, 2], [6, 2], [7, 2],
@@ -111,8 +111,8 @@ def test_teleporting_pieces(player_col, opponent_col):
                 [_, _, _, _, _, _, _, k]   # 7
             ]
     # Top-left knight
-    assert_length(board[0][0].get_move_set(board, [0, 0]), 0)
-    assert_contains(board[0][0].get_attack_set(board, [0, 0]),
+    assert_length(board[0][0].get_move_set(board, [0, 0], []), 0)
+    assert_contains(board[0][0].get_attack_set(board, [0, 0], []),
                     create_list_of_moves(MoveType.NORMAL, [0, 0],
                                          [
                                       [1, 2],
@@ -120,8 +120,8 @@ def test_teleporting_pieces(player_col, opponent_col):
                                   ]))
 
     # Knight near bottom
-    assert_length(board[6][1].get_move_set(board, [6, 1]), 0)
-    assert_contains(board[6][1].get_attack_set(board, [6, 1]),
+    assert_length(board[6][1].get_move_set(board, [6, 1], []), 0)
+    assert_contains(board[6][1].get_attack_set(board, [6, 1], []),
                     create_list_of_moves(MoveType.NORMAL, [6, 1],
                                          [
                                       [4, 0],
@@ -131,8 +131,8 @@ def test_teleporting_pieces(player_col, opponent_col):
                                   ]))
 
     # Middle knight
-    assert_length(board[4][4].get_move_set(board, [4, 4]), 0)
-    assert_contains(board[4][4].get_attack_set(board, [4, 4]),
+    assert_length(board[4][4].get_move_set(board, [4, 4], []), 0)
+    assert_contains(board[4][4].get_attack_set(board, [4, 4], []),
                     create_list_of_moves(MoveType.NORMAL, [4, 4],
                                          [
                                       [2, 5],
@@ -145,8 +145,8 @@ def test_teleporting_pieces(player_col, opponent_col):
                                   ]))
 
     # Bottom-right king
-    assert_length(board[7][7].get_move_set(board, [7, 7]), 0)
-    assert_contains(board[7][7].get_attack_set(board, [7, 7]),
+    assert_length(board[7][7].get_move_set(board, [7, 7], []), 0)
+    assert_contains(board[7][7].get_attack_set(board, [7, 7], []),
                     create_list_of_moves(MoveType.NORMAL, [7, 7],
                                          [   # Up
                                       [6, 7],
