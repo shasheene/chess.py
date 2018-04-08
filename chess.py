@@ -131,6 +131,8 @@ def main():
                 for move in piece_legal_move_set:
                     if move.end_coords[0] == user_end_coords[0] and move.end_coords[1] == user_end_coords[1]:
                         chosen_move = move
+                if not chosen_move:
+                    continue
                 if chosen_move.move_type == MoveType.PROMOTION:
                     # If we chose one a promotion end coordinates, we need to find the exact promotion choice we desire
                     chosen_move = request_promotion_type(piece_legal_move_set)
