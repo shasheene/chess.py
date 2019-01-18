@@ -31,20 +31,22 @@ Core gameplay is complete, with all known chess mechanics implemented:
     - [x] [3-fold repetition](https://en.wikipedia.org/wiki/Threefold_repetition)
     - [x] [50-move rule](https://en.wikipedia.org/wiki/Fifty-move_rule)
 
+#### History
+
+chess.py was written during freetime between December 2013 and January 2014, but was abandoned near-completion of terminal-based gameplay. After a 4 year hiatus, development was resumed with the left-over gameplay mechanics (described above) being quickly implemented.
+
 #### Roadmap
-The plan of where to take chess.py into the future:
+
+With the terminal-based chess game fully completed, it serves as a building block for future projects:
 
 - [] Refactor terminal application into client/server architecture
   - [] Communication of each player via JSON messages send over TCP sockets
     - Needs session IDs, opponent connection status etc
     - Confirm validity of JSON messages
+- [] Create a [TypeScript 'chess.ts' client](https://github.com/shasheene/chess.ts)
+- [] Host chess.py on a persistent cloud server, with chess.ts as the frontend
 - [] Computer player AI bot
 - [] Graphical user interface (in python) with move selection through mouse clicks
 - [] Create Android client (with the Flutter UI framework) and publish on app store
-- [] Setup a persistent server in the cloud
-- [] Create JavaScript web client and place it on the public internet
 
-#### History
-
-chess.py was written during freetime between December 2013 and January 2014, but was abandoned near-completion of terminal-based gameplay. In May 2017 (4 years and 4 months later), development resumed.
 
