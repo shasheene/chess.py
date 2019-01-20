@@ -39,12 +39,13 @@ chess.py was written during freetime between December 2013 and January 2014, but
 
 With the terminal-based chess game fully completed, it serves as a building block for future projects:
 
-- [] Refactor terminal application into client/server architecture
-  - [] Communication of each player via JSON messages send over TCP sockets
-    - Needs session IDs, opponent connection status etc
-    - Confirm validity of JSON messages
+- [x] Refactor terminal application into client/server architecture
+  - [x] Communication of each player via JSON messages send over TCP sockets
+  - [] Provide opponent connection status etc
+  - [] Confirm validity of JSON messages
 - [] Create a [TypeScript 'chess.ts' client](https://github.com/shasheene/chess.ts)
 - [] Host chess.py on a persistent cloud server, with chess.ts as the frontend
+  - [] Host multiple sessions
 - [] Computer player AI bot
 - [] Graphical user interface (in python) with move selection through mouse clicks
 - [] Create Android client (with the Flutter UI framework) and publish on app store
