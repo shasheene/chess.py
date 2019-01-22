@@ -332,3 +332,62 @@ def create():
     b.append([Rook("white"), Knight("white"), Bishop("white"), Queen("white"), King("white"), Bishop("white"), Knight("white"), Rook("white")])
     return b
 
+
+def convert_to_string_gameboard(game_board):
+    """
+    Converts gameboard into a serializable entity. Note: This is a lossy operation (information such as whether castling
+    is still a valid move is not kept). This information is only useful for display purposes.
+
+    :param game_board: list of list containing instances of the Piece class
+    :return: list of lists containing "wp" or "bk" to represent white pawn or black knight.
+    """
+    serializable_gameboard = []
+    for row in game_board:
+        serializable_row = []
+        for piece in row:
+            if piece.is_blank_piece:
+                serializable_row.append(piece.type)
+            if piece.col == "white":
+                serializable_row.append('w' + piece.type)
+            elif piece.col == "black":
+                serializable_row.append('b' + piece.type)
+        serializable_gameboard.append(serializable_row)
+    return serializable_gameboard
+
+
+def convert_from_string_gameboard(serializable_gameboard):
+    """
+    Get gameboard from the serializable entity.
+
+    Note: This information is only useful for display purposes. (information such as whether castling is still a
+    valid move does not exist here).
+
+    :param game_board: list of lists containing "wp" or "bk" to represent white pawn or black knight.
+    :return: list of list containing instances of the Piece class
+    """
+    gameboard = []
+    for row in serializable_gameboard:
+        gameboard_row = []
+        for piece in row:
+            piece_col = ""
+            if piece == "_":
+                gameboard_row.append(BlankPiece())
+            else:
+                if piece[0] == "w":
+                    piece_col = "white"
+                elif piece[0] == "b":
+                    piece_col = "black"
+                if piece[1] == "r":
+                    gameboard_row.append(Rook(piece_col))
+                elif piece[1] == "h":
+                    gameboard_row.append(Knight(piece_col))
+                elif piece[1] == "b":
+                    gameboard_row.append(Bishop(piece_col))
+                elif piece[1] == "q":
+                    gameboard_row.append(Queen(piece_col))
+                elif piece[1] == "k":
+                    gameboard_row.append(King(piece_col))
+                elif piece[1] == "p":
+                    gameboard_row.append(Pawn(piece_col))
+        gameboard.append(gameboard_row)
+    return gameboard

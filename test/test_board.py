@@ -1,3 +1,4 @@
+from chess.board import convert_to_string_gameboard, convert_from_string_gameboard
 from chess.move import MoveType
 from chess.pieces import BlankPiece, Rook, Pawn, King, Bishop, Queen, Knight
 from test.unit_test_fn import assert_length, assert_contains, create_list_of_moves
@@ -157,8 +158,63 @@ def test_teleporting_pieces(player_col, opponent_col):
                                   ]))
 
 
+def test_serialization():
+    __ = BlankPiece()
+
+    wp = Pawn("white")
+    bp = Pawn("black")
+    br = Rook("black")
+    bh = Knight("black")
+    bb = Bishop("black")
+    bq = Queen("black")
+    bk = King("black")
+
+    #             0   1   2   3   4   5   6   7
+    board = [
+                [br, bh, bb, bq, bk, __, __, __],  # 0
+                [bp, __, __, __, __, __, __, __],  # 1
+                [__, __, __, __, __, __, __, __],  # 2
+                [__, __, __, __, __, __, __, __],  # 3
+                [__, __, __, __, __, __, __, __],  # 4
+                [__, __, __, __, __, __, __, __],  # 5
+                [wp, __, __, __, __, __, __, __],  # 6
+                [__, __, __, __, __, __, __, __]   # 7
+            ]
+
+    serializable_gameboard = convert_to_string_gameboard(board)
+
+    expected_gameboard = [
+        ['br', 'bh', 'bb', 'bq', 'bk', '_', '_', '_'],
+        ['bp', '_', '_', '_', '_', '_', '_', '_'],
+        ['_', '_', '_', '_', '_', '_', '_', '_'],
+        ['_', '_', '_', '_', '_', '_', '_', '_'],
+        ['_', '_', '_', '_', '_', '_', '_', '_'],
+        ['_', '_', '_', '_', '_', '_', '_', '_'],
+        ['wp', '_', '_', '_', '_', '_', '_', '_'],
+        ['_', '_', '_', '_', '_', '_', '_', '_']
+    ]
+
+    assert_length(serializable_gameboard, 8)
+    assert_length(serializable_gameboard[3], 8)
+    if expected_gameboard != serializable_gameboard:
+        raise AssertionError("Expected gameboard" + str(expected_gameboard) + " but was " + str(serializable_gameboard))
+
+    new_board = convert_from_string_gameboard(expected_gameboard)
+    for i in range(0, len(board)):
+        for j in range(0, len(board[0])):
+            expected_piece = board[i][j]
+            actual_piece = new_board[i][j]
+            if expected_piece.type != actual_piece.type:
+                raise AssertionError("Expected piece type at " + str(i) + ", " + str(j) + " was " + expected_piece.type
+                                     + ", but got " + actual_piece.type)
+            if expected_piece.col != actual_piece.col:
+                raise AssertionError("Expected piece col at " + str(i) + ", " + str(
+                    j) + " was " + expected_piece.col + " but got " + actual_piece.col)
+
+
 colors = [{'player': "white", 'opponent': "black"}, {'player': "black", 'opponent': "white"}]
 for color in colors:
     test_sliding_pieces(color['player'], color['opponent'])
     test_teleporting_pieces(color['player'], color['opponent'])
+test_serialization()
 
