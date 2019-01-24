@@ -93,7 +93,7 @@ def main():
     conducted_move_history = deque([], history_length)
 
     while 1:
-        print_board(game_board)
+        print_board(player_turn, game_board)
         print(player_turn + 's turn. Select piece')
 
         valid_selection = False
@@ -154,7 +154,7 @@ def main():
             if can_player_leave_check_state(game_board, opposite_col(player_turn), conducted_move_history):
                 print('CHECK\n')
             else:
-                print_board(game_board)
+                print_board(player_turn, game_board)
                 print('CHECKMATE. ' + player_turn + ' wins!\n')
                 sys.exit(0)
 

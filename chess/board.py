@@ -39,9 +39,16 @@ def filter_self_checking_moves(board, list_of_moves, player_turn, conducted_move
     return piece_legal_move_set
 
 
-def print_board(board):
-    print('  a b c d e f g h')
+def print_board(player_color, board):
+    # Direction of board depends on player color
+    player_dir_increment = Pawn(player_color).forward_dir
     row_number = 8
+    if player_color == "black":
+        board = board.copy()
+        list.reverse(board)
+        row_number = 1
+
+    print('  a b c d e f g h')
     for row in board[:]:
         print(row_number, end=' ')
         for piece in row[:]:
@@ -50,7 +57,7 @@ def print_board(board):
             else:
                 # just for prettiness
                 print('_', end=' ')
-        row_number = row_number - 1
+        row_number = row_number + player_dir_increment
         print(end='\n')  # next row
     print('  a b c d e f g h')
 
